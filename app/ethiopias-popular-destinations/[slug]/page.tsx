@@ -5,14 +5,15 @@ import { siteData } from '@/data/siteData'
 import SchemaScript from '@/components/ui/SchemaScript'
 import { generateDestinationSchema, generateBreadcrumbSchema } from '@/lib/schema'
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 
 export async function generateStaticParams() {
   return siteData.destinations.map(d => ({ slug: d.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const dest = siteData.destinations.find(d => d.slug === params.slug)
+  const { slug } = await params;
+  const dest = siteData.destinations.find(d => d.slug === slug)
   if (!dest) return {}
   return {
     title: `${dest.name}, Ethiopia — Travel Guide & Tours | Sawla Tours`,
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function DestinationPage({ params }: Props) {
-  const dest = siteData.destinations.find(d => d.slug === params.slug)
+export default async function DestinationPage({ params }: Props) {
+  const { slug } = await params;
+  const dest = siteData.destinations.find(d => d.slug === slug)
   if (!dest) notFound()
 
   // Related destinations (same region or just next 3)
