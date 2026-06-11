@@ -1,110 +1,216 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { siteData } from '@/data/siteData'
+import type { Metadata } from "next"
+import Link from "next/link"
+import PlaceholderImage from "@/components/ui/PlaceholderImage"
+import SchemaScript from "@/components/ui/SchemaScript"
+import { AnimateIn, AnimateStagger } from "@/components/ui/AnimateIn"
+import { TESTIMONIALS, SITE } from "@/data/siteData"
+import { breadcrumbSchema } from "@/lib/schema"
 
 export const metadata: Metadata = {
-  title: 'Why Travel With Sawla Tours | Ethiopia Specialists Since 2009',
-  description: '17 years operating in Ethiopia. In-house Sawla Films production. 80% repeat clients. No call centres — speak directly with a specialist who knows the country.',
-  alternates: { canonical: 'https://www.sawlatours.com/why-travel-with-sawla-tours' },
+  title: "Why Travel with Sawla Tours | Local Ethiopia Experts",
+  description: "15 years. Ethiopian-owned. Every guide, driver, and specialist from here. Read why discerning travelers trust Sawla Tours for private Ethiopia journeys.",
+  alternates: { canonical: "https://www.sawlatours.com/why-travel-with-sawla-tours" },
+  openGraph: {
+    title: "Why Travel with Sawla Tours | Ethiopia Experts",
+    description: "Ethiopian-owned. Local guides. 15+ years. See why travelers return.",
+  },
 }
 
-const reasons = [
+const schema = [
+  breadcrumbSchema([
+    { name: "Home", url: "https://www.sawlatours.com" },
+    { name: "Why Travel with Us", url: "https://www.sawlatours.com/why-travel-with-sawla-tours" },
+  ]),
   {
-    num: '01',
-    title: 'We are Ethiopian',
-    body: 'Sawla Tours is not a foreign company operating in Ethiopia. We are an Ethiopian company, led by an Ethiopian team, with guides who are nationals of the regions they work in. A guide from Lalibela explaining the theology of the rock churches is different from a guide who studied about them. A driver from the Omo Valley navigating the road to Turmi is different from one who learned the route from a map.',
-  },
-  {
-    num: '02',
-    title: 'We work at a different depth',
-    body: 'Our clients are typically not first-time Africa travellers. They are people who have been to Kenya or Tanzania and are looking for something different — depth, not breadth. Sawla Tours is designed for this kind of traveller. Our itineraries are built around understanding, with guides who can answer difficult questions and time built in for the unexpected.',
-  },
-  {
-    num: '03',
-    title: 'Sawla Films changes everything',
-    body: 'The in-house documentary production capability of Sawla Films is not a marketing advantage — it is a genuine difference in how we experience Ethiopia. When Sawla Films films the Ethiopian wolf, the footage is informed by hours of prior observation. Our wildlife guides know individual animals. This accumulated knowledge is what they carry into the field with you.',
-  },
-  {
-    num: '04',
-    title: 'We are honest about what we are',
-    body: 'We are a small, founder-led company. We are not a call centre. When you send an enquiry, a specialist responds — not a sales agent reading from a script. We will tell you when a destination is not right for your timing. We will tell you when an itinerary is too ambitious for what you want.',
-  },
-  {
-    num: '05',
-    title: '17 years and counting',
-    body: 'We have been operating in Ethiopia since 2009. We have guided clients through festival seasons and quiet months, through changing road conditions and political shifts. That accumulated experience is why 80% of our clients return — and why nearly all new clients come through referrals from people who have travelled with us.',
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Why Travel with Sawla Tours",
+    description: "Trust signals, testimonials, and reasons why Sawla Tours is the right Ethiopia tour operator for discerning travelers.",
+    url: "https://www.sawlatours.com/why-travel-with-sawla-tours",
+    speakable: { "@type": "SpeakableSpecification", cssSelector: ["h1","#why-intro"] },
   },
 ]
 
 export default function WhyTravelPage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative h-[50vh] min-h-[400px] overflow-hidden flex flex-col justify-end bg-volcanic">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #0D1A10 0%, #1A3020 50%, #0A1A12 100%)' }} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.75) 100%)' }} />
-        <div className="relative z-10 px-6 md:px-12 pb-16 max-w-container mx-auto w-full">
-          <p className="label-eyebrow" style={{ color: 'rgba(201,148,26,0.8)' }}>The difference</p>
-          <h1 className="font-display font-light text-display-xl text-ivory">Why Travel With Sawla Tours</h1>
+      {schema.map((s,i) => <SchemaScript key={i} schema={s} />)}
+
+      {/* ── HERO — Pillar 1 (point of view): editorial, not salesy ── */}
+      <section className="relative overflow-hidden" style={{height:"72vh",minHeight:"520px"}} aria-labelledby="why-heading">
+        <PlaceholderImage filename="why-travel-hero.jpg" width={1920} height={1080} category="about" fill />
+        <div className="absolute inset-0" style={{background:"linear-gradient(to top, rgba(42,39,36,0.92) 0%, rgba(42,39,36,0.22) 55%, rgba(42,39,36,0.08) 100%)"}} />
+        <div className="absolute inset-x-0 bottom-0 pb-16 md:pb-20">
+          <div className="container-max">
+            <AnimateIn>
+              <nav aria-label="Breadcrumb" className="mb-5">
+                <ol className="flex items-center gap-2 font-body" style={{fontSize:"11.5px",letterSpacing:"0.1em",textTransform:"uppercase"}}>
+                  <li><Link href="/" className="text-ivory/50 hover:text-gold transition-colors cursor-pointer">Home</Link></li>
+                  <li className="text-ivory/30">&#47;</li>
+                  <li className="text-ivory/80">Why Travel with Us</li>
+                </ol>
+              </nav>
+              <span className="label-eyebrow text-gold">The Case for Sawla Tours</span>
+              <h1 id="why-heading" className="heading-display text-ivory mt-2" style={{fontSize:"clamp(2.25rem,5.5vw,5rem)"}}>
+                Why Discerning Travelers
+                <em className="block" style={{fontStyle:"italic",color:"var(--gold)"}}>Choose a Local Team</em>
+              </h1>
+              <p id="why-intro" className="text-ivory/70 font-body max-w-2xl mt-5 leading-relaxed" style={{fontSize:"clamp(1rem,1.25vw,1.2rem)"}}>
+                Not every Ethiopia tour operator is the same. The difference is in who designs your journey, who is in the vehicle with you, and who answers the phone when something changes.
+              </p>
+            </AnimateIn>
+          </div>
         </div>
       </section>
 
-      {/* 5 reasons */}
-      <section className="bg-ivory py-24 px-6 md:px-12">
-        <div className="max-w-container mx-auto">
-          <div className="max-w-2xl mb-16">
-            <p className="label-eyebrow">Five honest reasons</p>
-            <h2 className="font-display font-light text-display-lg text-charcoal">
-              What makes Sawla<br /><em className="italic text-warmgrey">different</em>
+      {/* ── 5 REASONS — Pillar 4 (hierarchy), Pillar 2 (typography) ── */}
+      <section className="section-padding bg-ivory" aria-labelledby="reasons-heading">
+        <div className="container-max">
+          <AnimateIn className="max-w-prose mx-auto text-center mb-16">
+            <span className="label-eyebrow">Why Sawla Tours</span>
+            <h2 id="reasons-heading" className="heading-display text-volcanic mt-2" style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>Five Reasons That Are Not on Every Operator Website</h2>
+          </AnimateIn>
+          <div className="space-y-0">
+            {[
+              {
+                n:"01",
+                title:"We are Ethiopian, not European",
+                body:"Most international tour operators to Ethiopia are based in London, Amsterdam, or Cape Town. Their specialists last visited two years ago. Our specialists grew up here. They speak Amharic, Tigrinya, and Afaan Oromoo. They know which guide is actually excellent in Tigray — not which guide has the best website.",
+                link:{label:"Meet our specialists",href:"/meet-our-travel-specialists"},
+              },
+              {
+                n:"02",
+                title:"Sawla Films changes what you can see before you book",
+                body:"We are the only Ethiopian tour operator with an in-house documentary division. You can watch footage of the Simien Mountains, the Omo Valley ceremonies, and the Danakil crater that we filmed ourselves. This is not stock photography — it is evidence.",
+                link:{label:"Watch Sawla Films",href:SITE.social.youtube,external:true},
+              },
+              {
+                n:"03",
+                title:"We tell you what other operators will not",
+                body:"If a destination is not worth your time for your dates, we say so. If a hotel we have recommended has declined, we say so. If security conditions in a region make us uncomfortable, we say so and suggest an alternative. This costs us some sales. It builds permanent trust.",
+                link:{label:"How we plan",href:"/how-we-work"},
+              },
+              {
+                n:"04",
+                title:"Your guide is a specialist, not a generalist",
+                body:"We do not assign whoever is available. For a wildlife itinerary, you get a guide who has spent years in Bale and the Simien. For a Tigray expedition, you get a guide who knows the cliff church access routes personally. For a festival journey, you get someone who understands the liturgical calendar, not just the dates.",
+                link:{label:"Meet our guides",href:"/meet-our-guides"},
+              },
+              {
+                n:"05",
+                title:"The planning conversation is the journey",
+                body:"The best journeys we have designed did not start with a form. They started with a conversation about what a specific traveler wanted to understand, feel, or witness. The route followed from that. We believe that good travel planning takes time, honesty, and attention — and we are willing to invest all three before you confirm anything.",
+                link:{label:"Start a conversation",href:"/enquire"},
+              },
+            ].map((r,i)=>(
+              <AnimateIn key={r.n} delay={i*0.06} className="group grid md:grid-cols-[100px_1fr_200px] gap-6 md:gap-12 items-start py-10 border-b border-sand/60 last:border-b-0">
+                <div className="font-display text-gold/30 font-light" style={{fontSize:"clamp(2rem,4vw,3rem)"}}>{r.n}</div>
+                <div>
+                  <h3 className="font-display text-volcanic font-normal leading-snug mb-4" style={{fontSize:"clamp(1.25rem,2vw,1.625rem)"}}>{r.title}</h3>
+                  <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"clamp(1rem,1.1vw,1.0625rem)"}}>{r.body}</p>
+                </div>
+                <div className="md:pt-2">
+                  {r.link.external
+                    ? <a href={r.link.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-gold hover:text-volcanic transition-colors font-body font-medium cursor-pointer" style={{fontSize:"12px",letterSpacing:"0.1em",textTransform:"uppercase"}}>{r.link.label} <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg></a>
+                    : <Link href={r.link.href} className="inline-flex items-center gap-2 text-gold hover:text-volcanic transition-colors font-body font-medium cursor-pointer" style={{fontSize:"12px",letterSpacing:"0.1em",textTransform:"uppercase"}}>{r.link.label} <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg></Link>
+                  }
+                </div>
+              </AnimateIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ALL TESTIMONIALS — Pillar 5 (content with intent) ── */}
+      <section className="section-padding bg-volcanic" aria-labelledby="testimonials-heading">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-14">
+            <span className="label-eyebrow text-gold">In Their Own Words</span>
+            <h2 id="testimonials-heading" className="heading-display text-ivory mt-2" style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              What Travelers Say About Private Ethiopia Tours
             </h2>
-          </div>
-          <div className="space-y-px bg-sand">
-            {reasons.map(({ num, title, body }) => (
-              <div key={num} className="bg-ivory grid grid-cols-1 lg:grid-cols-[120px_1fr] gap-8 p-10 items-start">
-                <div className="font-display italic font-light text-[2.5rem] text-gold/40 leading-none">{num}</div>
-                <div>
-                  <h3 className="font-display font-[400] text-display-sm text-charcoal mb-4">{title}</h3>
-                  <p className="font-body text-body-md text-warmgrey leading-[1.82] max-w-2xl">{body}</p>
+            <p className="text-ivory/60 font-body mt-4 max-w-xl mx-auto" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+              Real testimonials from travelers who booked directly with Sawla Tours.
+            </p>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
+            {TESTIMONIALS.map(tm=>(
+              <blockquote key={tm.id} className="bg-white/5 border border-white/10 rounded-card p-7 flex flex-col hover:bg-white/8 hover:border-gold/25 transition-colors duration-300">
+                <div className="flex gap-1 mb-5">
+                  {[1,2,3,4,5].map(i=>(<svg key={i} width="13" height="13" viewBox="0 0 14 14" fill="#c9941a" aria-hidden="true"><path d="M7 1l1.68 3.4 3.75.55-2.71 2.64.64 3.73L7 9.77 3.64 11.32l.64-3.73L1.57 4.95l3.75-.55L7 1z"/></svg>))}
                 </div>
-              </div>
+                <p className="text-ivory/80 font-body italic leading-relaxed flex-1" style={{fontSize:"clamp(0.9375rem,1.1vw,1rem)"}}>{tm.fullQuote}</p>
+                <footer className="mt-6 flex items-center gap-3 pt-5 border-t border-white/10">
+                  <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-ivory font-body font-medium flex-shrink-0" style={{fontSize:"12px"}}>{tm.initials}</div>
+                  <div>
+                    <div className="font-body font-medium text-ivory" style={{fontSize:"13px"}}>{tm.name} {tm.countryFlag}</div>
+                    <div className="text-ivory/45 font-body mt-0.5" style={{fontSize:"11.5px"}}>{tm.tripType}</div>
+                  </div>
+                </footer>
+              </blockquote>
             ))}
-          </div>
+          </AnimateStagger>
         </div>
       </section>
 
-      {/* Testimonials strip */}
-      <section className="bg-sand py-20 px-6 md:px-12">
-        <div className="max-w-container mx-auto">
-          <p className="label-eyebrow mb-12">What clients say</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-sand/50">
-            {siteData.testimonials.slice(0, 3).map(t => (
-              <div key={t.id} className="bg-ivory p-8">
-                <p className="font-display italic font-light text-[1.0625rem] text-charcoal leading-[1.65] mb-6">
-                  <span className="text-gold text-xl leading-none align-[-0.3em] mr-0.5">&ldquo;</span>{t.text}
-                </p>
-                <div>
-                  <div className="font-body text-[0.8125rem] font-medium text-charcoal">{t.name}</div>
-                  <div className="font-body text-[0.6875rem] text-warmgrey">{t.country} · {t.year}</div>
-                  <div className="inline-block font-body text-[0.6rem] tracking-[0.14em] uppercase text-gold bg-gold/8 px-2 py-0.5 mt-1.5">{t.tour}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ── COMPARISON TABLE — unique to this page ── */}
+      <section className="section-padding bg-ivory" aria-labelledby="compare-heading">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-12">
+            <span className="label-eyebrow">How We Compare</span>
+            <h2 id="compare-heading" className="heading-display text-volcanic mt-2" style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>Local vs. International Ethiopia Operators</h2>
+          </AnimateIn>
+          <AnimateIn className="overflow-x-auto">
+            <table className="w-full border-collapse" role="table" aria-label="Comparison of Sawla Tours vs international operators">
+              <thead>
+                <tr className="border-b-2 border-volcanic">
+                  <th scope="col" className="text-left py-3 pr-6 font-body font-medium text-volcanic" style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>Factor</th>
+                  <th scope="col" className="py-3 px-6 font-body font-medium text-volcanic" style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>Sawla Tours</th>
+                  <th scope="col" className="py-3 pl-6 font-body font-medium text-warmgrey" style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>International operators</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Based in","Addis Ababa, Ethiopia","London, Cape Town, Amsterdam"],
+                  ["Guide knowledge","Region-specific specialists","Generalist guides"],
+                  ["Country insight","Current — we live here","Last visited: varies"],
+                  ["Documentary division","Sawla Films (in-house)","None"],
+                  ["Planning approach","Tailor-made from conversation","Packages from catalogue"],
+                  ["Security updates","Real-time, local sources","Government advisories"],
+                  ["In-trip support","Same team throughout","Sub-contracted locally"],
+                ].map(([factor,sawla,intl],i)=>(
+                  <tr key={factor} className={i%2===0?"bg-gold-faint/30":"bg-transparent"}>
+                    <td className="py-4 pr-6 font-body font-medium text-volcanic" style={{fontSize:"14px"}}>{factor}</td>
+                    <td className="py-4 px-6 text-center">
+                      <div className="inline-flex items-center gap-2 text-volcanic font-body" style={{fontSize:"13.5px"}}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l4 4 6-7" stroke="#c9941a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        {sawla}
+                      </div>
+                    </td>
+                    <td className="py-4 pl-6 text-center text-warmgrey font-body" style={{fontSize:"13.5px"}}>{intl}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </AnimateIn>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-charcoal py-20 px-6 md:px-12 text-center">
-        <div className="max-w-lg mx-auto">
-          <h2 className="font-display font-light text-display-lg text-ivory mb-8">
-            Convinced?<br /><em className="italic text-ivory/42">Let's talk.</em>
-          </h2>
-          <div className="flex items-center justify-center gap-4">
-            <Link href="/enquire" className="btn-primary-ivory">Start Planning</Link>
-            <Link href="/how-we-work" className="btn-ghost-light inline-flex items-center gap-2">
-              How we work <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </Link>
-          </div>
+      {/* ── FINAL CTA ── */}
+      <section className="bg-volcanic py-20 text-center">
+        <div className="container-max">
+          <AnimateIn>
+            <h2 className="heading-display text-ivory mb-6" style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              Convinced? Start a Conversation.
+            </h2>
+            <p className="text-ivory/65 font-body max-w-lg mx-auto mb-8 leading-relaxed" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+              No pressure, no packages. Just an Ethiopia specialist who will listen and design something worth traveling for.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/enquire" className="btn-gold py-4 px-10">Start Planning</Link>
+              <Link href="/about-us" className="btn-ghost-light">About Sawla Tours</Link>
+            </div>
+          </AnimateIn>
         </div>
       </section>
     </>

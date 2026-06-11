@@ -1,603 +1,426 @@
-'use client'
-import { useEffect, useRef } from 'react'
-import Link from 'next/link'
-import { siteData } from '@/data/siteData'
+import type { Metadata } from "next"
+import Link from "next/link"
+import PlaceholderImage from "@/components/ui/PlaceholderImage"
+import SchemaScript from "@/components/ui/SchemaScript"
+import { AnimateIn, AnimateStagger } from "@/components/ui/AnimateIn"
+import HeroSection from "@/components/home/HeroSection"
+import TripWizard from "@/components/home/TripWizard"
+import { homepageSchema } from "@/lib/schema"
+import { DESTINATIONS, TOUR_STYLES, TESTIMONIALS, MOMENTS_ARTICLES, SITE } from "@/data/siteData"
 
-// ─── Scroll reveal hook ───────────────────────────────────────────────────
-function useReveal() {
-  useEffect(() => {
-    const els = document.querySelectorAll('.reveal')
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry, i) => {
-          if (entry.isIntersecting) {
-            setTimeout(() => entry.target.classList.add('visible'), i * 80)
-            observer.unobserve(entry.target)
-          }
-        })
-      },
-      { threshold: 0.08 }
-    )
-    els.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [])
+export const metadata: Metadata = {
+  title: "Private Ethiopia Tours by Local Experts | Sawla Tours",
+  description: "Sawla Tours designs private Ethiopia journeys across Lalibela, Simien, Omo Valley, Danakil, and 16 destinations. Ethiopian team, 15+ years. No packages.",
+  alternates: { canonical: "https://www.sawlatours.com" },
 }
 
-// ─── Arrow icon ───────────────────────────────────────────────────────────
-const Arrow = ({ className = '' }: { className?: string }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={className}>
-    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
+const featuredDests = DESTINATIONS.filter(d => d.featured)
+const homeTestimonials = TESTIMONIALS.filter(t => ["andrew-bart-usa","keith-blodgett","maureen-mason-au"].includes(t.id))
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────
+/* ── SVG Icons (no emoji) ──────────────────────── */
+const IconEthiopia = () => (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.4"/><path d="M10 3v14M3 10h14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>)
+const IconStar     = () => (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2l2.39 4.84 5.34.78-3.87 3.77.91 5.32L10 14.27l-4.77 2.44.91-5.32L2.27 7.62l5.34-.78L10 2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>)
+const IconCalendar = () => (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M2.5 8h15M7 2v3M13 2v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
+const IconFilm     = () => (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="4.5" width="16" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><path d="M8 7.5l5 2.5-5 2.5V7.5z" fill="currentColor" opacity=".6"/></svg>)
+const IconArrow    = () => (<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1 7h12M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>)
+
 export default function HomePage() {
-  useReveal()
-
   return (
     <>
-      {/* 1 ── HERO */}
-      <section className="relative h-screen min-h-[720px] flex flex-col justify-end overflow-hidden">
-        {/* Background — swap with Sawla Films <video> when ready */}
-        <div className="absolute inset-0">
-          {/*
-            VIDEO SWAP INSTRUCTIONS:
-            Replace this div with:
-            <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
-              <source src="/videos/sawla-hero-desktop.mp4" type="video/mp4" media="(min-width:768px)" />
-              <source src="/videos/sawla-hero-mobile.mp4" type="video/mp4" />
-            </video>
-          */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `
-                radial-gradient(ellipse 80% 60% at 60% 40%, #3D2E1A 0%, transparent 70%),
-                radial-gradient(ellipse 50% 40% at 20% 70%, #1A1208 0%, transparent 60%),
-                linear-gradient(180deg, #0D0A07 0%, #2A1E0E 30%, #3D2A14 55%, #1C1510 100%)
-              `
-            }}
-          />
-          {/* Film grain */}
-          <div className="film-grain" />
-          {/* Horizon glow */}
-          <div
-            className="absolute z-[3] h-px left-0 right-0"
-            style={{
-              bottom: '34%',
-              background: 'linear-gradient(90deg, transparent, rgba(201,148,26,0.12), rgba(201,148,26,0.28), rgba(201,148,26,0.12), transparent)',
-              animation: 'fadeIn 2s cubic-bezier(0.16,1,0.3,1) 1.5s both',
-            }}
-          />
-          {/* Overlay gradient */}
-          <div
-            className="absolute inset-0 z-[4]"
-            style={{ background: 'linear-gradient(180deg, rgba(10,8,6,0.18) 0%, transparent 30%, transparent 45%, rgba(10,8,6,0.6) 80%, rgba(10,8,6,0.88) 100%)' }}
-          />
-        </div>
+      <SchemaScript schema={homepageSchema} />
 
-        {/* Hero content */}
-        <div className="relative z-10 px-12 pb-20 max-w-[860px]" style={{ paddingLeft: '3rem' }}>
-          <p
-            className="font-body text-[0.6875rem] tracking-[0.18em] uppercase text-gold mb-6"
-            style={{ opacity: 0, animation: 'fadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.8s forwards' }}
-          >
-            Ethiopia · Since 2009
-          </p>
-          <h1 className="font-display font-light text-display-xl text-ivory mb-7">
-            {["Ethiopia isn't", "a destination.", <em key="em" className="italic text-ivory/72">It&apos;s an encounter.</em>].map((line, i) => (
-              <span key={i} className="block overflow-hidden">
-                <span className="block" style={{ opacity: 0, transform: 'translateY(105%)', animation: `lineUp 1.1s cubic-bezier(0.16,1,0.3,1) ${0.9 + i * 0.15}s forwards` }}>
-                  {line}
-                </span>
-              </span>
+      {/* ══ 1. HERO ══════════════════════════════════════════════════════ */}
+      <HeroSection />
+
+      {/* ══ 2. TRUST BAR ══════════════════════════════════════════════════ */}
+      <section className="bg-volcanic border-b border-white/8" aria-label="About Sawla Tours">
+        <div className="container-max py-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            {[
+              { Icon: IconEthiopia, title: "Ethiopia-based",  sub: "Local team, in-country expertise" },
+              { Icon: IconStar,     title: "Highly rated",    sub: "Trusted through referrals" },
+              { Icon: IconCalendar, title: "Est. 2009",       sub: "15+ years designing journeys" },
+              { Icon: IconFilm,     title: "Sawla Films",     sub: "In-house documentary division" },
+            ].map(({ Icon, title, sub }) => (
+              <div key={title} className="flex items-center gap-3 py-2">
+                <span className="text-gold/70 flex-shrink-0"><Icon /></span>
+                <div>
+                  <div className="text-ivory text-[13px] font-medium font-body tracking-wide">{title}</div>
+                  <div className="text-ivory/45 text-xs font-body leading-snug">{sub}</div>
+                </div>
+              </div>
             ))}
-          </h1>
-          <p
-            className="font-body text-body-md text-ivory/58 max-w-[460px] mb-10"
-            style={{ opacity: 0, animation: 'fadeUp 1s cubic-bezier(0.16,1,0.3,1) 1.4s forwards' }}
-          >
-            Seventeen days through the roof of Africa, from the rock churches of Lalibela to the wolves of the Bale Mountains. Every journey built from scratch.
-          </p>
-          <div
-            className="flex items-center gap-6"
-            style={{ opacity: 0, animation: 'fadeUp 1s cubic-bezier(0.16,1,0.3,1) 1.6s forwards' }}
-          >
-            <Link href="/enquire" className="btn-primary-ivory">Start Planning</Link>
-            <Link href="https://www.ethiopiafilmfixer.com" className="btn-ghost-light group">
-              Watch the film <Arrow className="transition-transform duration-400 group-hover:translate-x-1.5" />
-            </Link>
           </div>
-        </div>
-
-        {/* Stats — right edge */}
-        <div
-          className="absolute right-12 bottom-20 z-10 flex flex-col gap-7 text-right"
-          style={{ opacity: 0, animation: 'fadeIn 1s cubic-bezier(0.16,1,0.3,1) 2s forwards' }}
-        >
-          {[
-            { num: '16',  label: 'Destinations' },
-            { num: '36+', label: 'Itineraries' },
-            { num: '80%', label: 'Repeat clients' },
-          ].map(({ num, label }) => (
-            <div key={label}>
-              <div className="font-display font-light text-[2.25rem] text-ivory leading-none tracking-[-0.02em]">{num}</div>
-              <div className="font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mt-1">{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Scroll cue */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
-          style={{ opacity: 0, animation: 'fadeIn 1s cubic-bezier(0.16,1,0.3,1) 2.3s forwards' }}
-        >
-          <div className="relative w-px h-11 bg-ivory/20 overflow-hidden">
-            <div
-              className="absolute top-[-100%] left-0 w-full h-full bg-gold"
-              style={{ animation: 'scrollDrop 2.2s cubic-bezier(0.16,1,0.3,1) 2.6s infinite' }}
-            />
-          </div>
-          <span className="font-body text-[0.55rem] tracking-[0.22em] uppercase text-ivory/28">Explore</span>
         </div>
       </section>
 
-      {/* 2 ── TRUST BAR */}
-      <div className="bg-charcoal border-t border-ivory/[0.08] py-5 px-12">
-        <div className="flex items-center justify-center flex-wrap gap-6">
-          {['Operating since 2009', 'Licensed Ethiopian tour operator', 'In-house documentary production', '100% tailor-made journeys', 'Addis Ababa based team'].map((item, i) => (
-            <span key={item} className="flex items-center gap-3">
-              {i > 0 && <span className="w-1 h-1 rounded-full bg-gold/60" />}
-              <span className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-ivory/38">{item}</span>
-            </span>
-          ))}
-        </div>
+      {/* AIO Entity Block - crawler visible, screen-reader only */}
+      <div className="sr-only" aria-hidden="false">
+        <p>Sawla Tours is an Addis Ababa-based Ethiopia tour operator founded in 2009, specialising in private, tailor-made Ethiopia journeys. The company designs cultural, historic, wildlife, birding, photography, tribal, festival, and adventure tours. Local specialists, experienced Ethiopian guides, trusted drivers, and Sawla Films in-house documentary division.</p>
       </div>
 
-      {/* 3 ── TOUR STYLES */}
-      <section className="bg-ivory py-32 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-end mb-20 reveal">
-            <div>
-              <p className="label-eyebrow">Six ways to travel</p>
-              <h2 className="font-display font-light text-display-lg text-charcoal">
-                Choose your<br /><em className="italic text-warmgrey">Ethiopia</em>
+      {/* ══ 3. DECLARATION ════════════════════════════════════════════════ */}
+      <section className="section-padding bg-ivory" aria-labelledby="declaration-heading">
+        <div className="container-max">
+          <div className="max-w-4xl mx-auto">
+            <AnimateIn delay={0}><span className="label-eyebrow">Our Approach</span></AnimateIn>
+            <AnimateIn delay={0.1}>
+              <h2 id="declaration-heading" className="heading-display text-volcanic"
+                style={{ fontSize: "clamp(2.5rem,6vw,5.5rem)", marginBottom: "2.5rem" }}>
+                Ethiopia Is Not One Journey.
+                <span className="block text-gold">It&apos;s Hundreds.</span>
               </h2>
-            </div>
-            <p className="font-body text-body-md text-warmgrey leading-[1.82] self-end">
-              Every journey is built around a single question: what do you want to feel? From ancient civilisations to endemic wolves to the world&apos;s hottest place — we design the entry point that matches you.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-sand reveal">
-            {siteData.tourStyles.map((style) => (
-              <Link
-                key={style.slug}
-                href={`/tours-by-experience/${style.slug}`}
-                className="group relative overflow-hidden aspect-[3/4] bg-charcoal"
-              >
-                {/* Placeholder bg — swap with next/image */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${style.color} transition-transform duration-700 ease-luxury group-hover:scale-105`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-7">
-                  <div className="font-display text-[0.75rem] italic text-ivory/30 mb-2 tracking-[0.08em]">{style.number}</div>
-                  <div className="font-display font-light text-display-sm text-ivory mb-2 leading-[1.18]">{style.name}</div>
-                  <div className="font-body text-[0.75rem] leading-[1.65] text-ivory/52 mb-4 opacity-0 translate-y-2.5 transition-all duration-450 ease-luxury group-hover:opacity-100 group-hover:translate-y-0">
-                    {style.desc}
-                  </div>
-                  <div className="flex items-center gap-1.5 font-body text-[0.6rem] tracking-[0.18em] uppercase text-gold transition-[gap] duration-350 group-hover:gap-2.5">
-                    Explore <Arrow />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4 ── DESTINATIONS */}
-      <section className="bg-volcanic py-32 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="flex items-end justify-between mb-16 reveal">
-            <div>
-              <p className="label-eyebrow" style={{ color: 'rgba(201,148,26,0.8)' }}>Where we go</p>
-              <h2 className="font-display font-light text-display-lg text-ivory">
-                16 destinations,<br /><em className="italic text-ivory/45">one country</em>
-              </h2>
-            </div>
-            <Link href="/ethiopias-popular-destinations" className="group flex items-center gap-1.5 font-body text-[0.6875rem] tracking-[0.13em] uppercase text-ivory/45 hover:text-gold transition-colors duration-300 pb-1.5">
-              All destinations <Arrow className="transition-transform duration-350 group-hover:translate-x-1" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-ivory/[0.06] reveal">
-            {/* Feature destination */}
-            <Link href="/ethiopias-popular-destinations/lalibela" className="group relative overflow-hidden col-span-2 min-h-[460px] bg-charcoal">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1A0808] via-[#3D1A10] to-[#200A08] transition-transform duration-800 ease-luxury group-hover:scale-[1.04]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="font-body text-[0.55rem] tracking-[0.18em] uppercase text-ivory/38 mb-1.5">Northern Ethiopia</div>
-                <div className="font-display font-light text-[1.75rem] text-ivory leading-[1.2]">Lalibela</div>
-                <div className="font-body text-[0.6rem] tracking-[0.12em] uppercase text-gold mt-1 opacity-0 translate-y-1.5 transition-all duration-400 ease-luxury group-hover:opacity-100 group-hover:translate-y-0">
-                  Rock-hewn churches · UNESCO
-                </div>
-              </div>
-            </Link>
-
-            {siteData.destinations.slice(1, 7).map((dest) => (
-              <Link
-                key={dest.slug}
-                href={`/ethiopias-popular-destinations/${dest.slug}`}
-                className="group relative overflow-hidden aspect-[2/3] bg-charcoal"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-charcoal via-volcanic to-charcoal transition-transform duration-800 ease-luxury group-hover:scale-[1.06]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <div className="font-body text-[0.55rem] tracking-[0.18em] uppercase text-ivory/38 mb-1">{dest.region}</div>
-                  <div className="font-display font-light text-[1.125rem] text-ivory leading-[1.2]">{dest.name}</div>
-                  <div className="font-body text-[0.6rem] tracking-[0.12em] uppercase text-gold mt-1 opacity-0 translate-y-1.5 transition-all duration-400 ease-luxury group-hover:opacity-100 group-hover:translate-y-0">
-                    {dest.tagline}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5 ── SPECIES */}
-      <section className="bg-charcoal py-28 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="text-center max-w-xl mx-auto mb-16 reveal">
-            <p className="label-eyebrow">Endemic wildlife</p>
-            <h2 className="font-display font-light text-display-lg text-ivory">
-              A natural world<br /><em className="italic text-ivory/45">found nowhere else</em>
-            </h2>
-            <p className="font-body text-[0.9375rem] text-ivory/50 leading-[1.82] mt-5">
-              Ethiopia has more endemic mammals and birds than almost any African nation. We know where to find them, and when.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-ivory/[0.06] reveal">
-            {siteData.species.map((sp) => (
-              <Link
-                key={sp.slug}
-                href={`/ethiopia-wildlife/${sp.slug}`}
-                className="group relative overflow-hidden aspect-square bg-charcoal"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-volcanic to-charcoal transition-transform duration-700 ease-luxury group-hover:scale-[1.07]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <div className="font-display font-light text-[1.125rem] text-ivory mb-0.5">{sp.name}</div>
-                  <div className="font-display italic text-[0.75rem] text-ivory/35">{sp.latin}</div>
-                  <div className="inline-block font-body text-[0.55rem] tracking-[0.14em] uppercase bg-gold/15 text-gold px-2 py-0.5 mt-1.5 opacity-0 transition-opacity duration-400 group-hover:opacity-100">
-                    Endemic
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between mt-12 pt-8 border-t border-ivory/10 reveal">
-            {[
-              { num: '850+', label: 'Bird species\nrecorded' },
-              { num: '18',   label: 'Endemic bird\nspecies' },
-              { num: '13',   label: 'Endemic mammal\nspecies' },
-            ].map(({ num, label }) => (
-              <div key={num}>
-                <div className="font-display font-light text-[3rem] text-ivory leading-none">{num}</div>
-                <div className="font-body text-[0.6875rem] text-ivory/40 mt-1 whitespace-pre-line">{label}</div>
-              </div>
-            ))}
-            <Link href="/ethiopia-wildlife/endemic-species" className="group flex items-center gap-1.5 font-body text-[0.6875rem] tracking-[0.13em] uppercase text-gold hover:gap-3 transition-[gap] duration-350">
-              Full species guide <Arrow />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 6 ── TESTIMONIALS */}
-      <section className="bg-ivory py-32 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 items-start">
-            <div className="reveal">
-              <p className="label-eyebrow">Client journeys</p>
-              <h2 className="font-display font-light text-display-lg text-charcoal mb-8">
-                What travellers<br /><em className="italic text-warmgrey">remember</em>
-              </h2>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="font-display font-light text-[3rem] text-charcoal leading-none">4.9</div>
-                <div>
-                  <div className="text-gold text-sm tracking-widest">★★★★★</div>
-                  <div className="font-body text-[0.75rem] text-warmgrey leading-[1.6] mt-0.5">
-                    Based on verified reviews<br />Trustpilot · SafariBookings
-                  </div>
-                </div>
-              </div>
-              <Link href="/why-travel-with-sawla-tours" className="group flex items-center gap-1.5 font-body text-[0.6875rem] tracking-[0.13em] uppercase text-warmgrey hover:text-gold transition-colors duration-300">
-                All testimonials <Arrow className="transition-transform duration-350 group-hover:translate-x-1" />
-              </Link>
-            </div>
-
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-px bg-sand reveal">
-              {siteData.testimonials.slice(0, 4).map((t) => (
-                <div key={t.id} className="bg-ivory p-8">
-                  <p className="font-display font-light text-[1.125rem] leading-[1.65] text-charcoal italic mb-6">
-                    <span className="text-gold text-2xl leading-none align-[-0.4em] mr-0.5">&ldquo;</span>
-                    {t.text}
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-sand flex items-center justify-center font-body text-[0.6875rem] font-medium text-warmgrey flex-shrink-0">
-                      {t.name.split(' ').map((n) => n[0]).join('')}
+            </AnimateIn>
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+              <AnimateIn delay={0.2} className="space-y-5 text-warmgrey font-body leading-relaxed" style={{ fontSize: "clamp(1rem,1.25vw,1.125rem)" }}>
+                <p>There is no single Ethiopia. There is the Ethiopia of ancient churches carved from living rock. The Ethiopia of highland wolves and endemic birds found nowhere else on earth. The Ethiopia of tribes, ceremonies, and coffee rituals stretching back millennia.</p>
+                <p>We are Sawla Tours — an Ethiopia-based team of travel specialists, guides, drivers, and field crews who know all of them. Since 2009, we have designed private journeys for travelers who want more than a highlight reel.</p>
+                <Link href="/about-us" className="inline-flex items-center gap-2 text-gold hover:text-volcanic transition-colors text-[12px] font-body tracking-[0.1em] uppercase font-medium mt-2 group cursor-pointer">
+                  Meet Our Team <span className="group-hover:translate-x-1 transition-transform"><IconArrow /></span>
+                </Link>
+              </AnimateIn>
+              <AnimateIn delay={0.35}>
+                <blockquote className="pull-quote">
+                  &ldquo;We do not have a catalogue.
+                  <br />We have a conversation.&rdquo;
+                </blockquote>
+                <div className="divider-gold" />
+                <div className="grid grid-cols-3 gap-6 mt-2">
+                  {[["16+","Destinations"],["36+","Itineraries"],["15+","Years"]].map(([n,l]) => (
+                    <div key={l}>
+                      <div className="font-display text-volcanic font-light" style={{fontSize:"clamp(1.75rem,3.5vw,2.5rem)",letterSpacing:"-0.02em"}}>{n}</div>
+                      <div className="text-warmgrey font-body mt-1" style={{fontSize:"0.75rem",letterSpacing:"0.12em",textTransform:"uppercase"}}>{l}</div>
                     </div>
-                    <div>
-                      <div className="font-body text-[0.8125rem] font-medium text-charcoal">{t.name}</div>
-                      <div className="font-body text-[0.6875rem] text-warmgrey">{t.country} · {t.year}</div>
-                      <div className="inline-block font-body text-[0.6rem] tracking-[0.14em] uppercase text-gold bg-gold/8 px-2 py-0.5 mt-1">{t.tour}</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </AnimateIn>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 7 ── SAWLA FILMS */}
-      <section className="bg-volcanic py-36 px-12 relative overflow-hidden">
-        <div className="absolute top-0 left-12 right-12 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
-        <div className="max-w-container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <div className="reveal">
-            <p className="label-eyebrow" style={{ color: 'rgba(201,148,26,0.8)' }}>Sawla Films</p>
-            <h2 className="font-display font-light text-display-lg text-ivory mb-6">
-              We don&apos;t just show<br />you Ethiopia.<br /><em className="italic text-ivory/42">We document it.</em>
-            </h2>
-            <p className="font-body text-[0.9375rem] text-ivory/52 leading-[1.85] mb-8">
-              The only tour operator in Ethiopia with in-house documentary production. Every destination on this site was filmed by our own team. No stock footage. No Unsplash. When you travel with us, you travel with the people who made the films.
-            </p>
-            <div className="flex gap-10 py-7 border-t border-b border-ivory/10 mb-8">
-              {[
-                { num: '89',  label: 'Films produced' },
-                { num: '12',  label: 'Regional states' },
-                { num: '4K',  label: 'All footage' },
-              ].map(({ num, label }) => (
-                <div key={label}>
-                  <div className="font-display font-light text-[2rem] text-ivory leading-none">{num}</div>
-                  <div className="font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/35 mt-0.5">{label}</div>
-                </div>
-              ))}
-            </div>
-            <Link href="https://www.ethiopiafilmfixer.com" className="group flex items-center gap-1.5 font-body text-[0.6875rem] tracking-[0.13em] uppercase text-ivory/60 hover:text-gold transition-colors duration-300">
-              Visit Sawla Films <Arrow className="transition-transform duration-350 group-hover:translate-x-1" />
-            </Link>
-          </div>
-
-          <div className="reveal">
-            {/* SWAP with actual Sawla Films embed/video when ready */}
-            <div className="relative aspect-video bg-charcoal">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1A1208] via-[#2A1E0E] to-[#1A1208]" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3.5">
-                <a
-                  href="https://www.ethiopiafilmfixer.com"
-                  className="w-[52px] h-[52px] rounded-full border border-ivory/28 flex items-center justify-center hover:border-gold hover:bg-gold/10 transition-all duration-300"
-                >
-                  <svg width="18" height="18" viewBox="0 0 18 18" className="ml-0.5">
-                    <polygon points="6,3 15,9 6,15" fill="rgba(248,246,241,0.75)" />
-                  </svg>
-                </a>
-                <span className="font-body text-[0.6rem] tracking-[0.22em] uppercase text-ivory/20">Sawla Films showreel 2025</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8 ── HOW WE WORK */}
-      <section className="bg-sand py-32 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="text-center max-w-[560px] mx-auto mb-20 reveal">
-            <p className="label-eyebrow">The process</p>
-            <h2 className="font-display font-light text-display-lg text-charcoal">
-              How a Sawla journey<br /><em className="italic text-warmgrey">comes together</em>
-            </h2>
-            <p className="font-body text-[0.9375rem] text-warmgrey leading-[1.8] mt-5">
-              From first enquiry to departure, four steps. We handle every detail — you arrive ready to be present.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 relative reveal">
-            {/* Connecting line — desktop only */}
-            <div className="absolute top-7 left-[12.5%] right-[12.5%] h-px bg-warmgrey/20 hidden lg:block" />
-
-            {[
-              { n: '01', title: 'You tell us what matters', desc: 'A short conversation. We listen for what you want to feel, not just what you want to see. This shapes everything.' },
-              { n: '02', title: 'We design your journey',   desc: 'A specialist builds a bespoke itinerary — no templates, no group departures. Every day has a reason.' },
-              { n: '03', title: 'You refine, we perfect',   desc: 'Two or three iterations. You ask questions. We adjust. The journey becomes yours before you\'ve left home.' },
-              { n: '04', title: 'You arrive, we\'re there', desc: 'Our team meets you at Bole Airport. From that moment, Ethiopia is handled. You focus on experiencing it.' },
-            ].map(({ n, title, desc }) => (
-              <div key={n} className="px-6 text-center">
-                <div className="w-14 h-14 rounded-full border border-warmgrey/30 flex items-center justify-center mx-auto mb-6 bg-sand relative z-10">
-                  <span className="font-display font-light text-charcoal">{n}</span>
-                </div>
-                <h3 className="font-display font-[400] text-[1.125rem] text-charcoal mb-3">{title}</h3>
-                <p className="font-body text-[0.8125rem] text-warmgrey leading-[1.75]">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 9 ── SAWLA MOMENTS */}
-      <section className="bg-ivory py-32 px-12">
-        <div className="max-w-container mx-auto">
-          <div className="flex items-end justify-between mb-16 reveal">
+      {/* ══ 4. FEATURED DESTINATIONS ══════════════════════════════════════ */}
+      <section className="section-padding bg-volcanic" aria-labelledby="destinations-heading">
+        <div className="container-max">
+          <AnimateIn className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
             <div>
-              <p className="label-eyebrow">Sawla Moments</p>
-              <h2 className="font-display font-light text-display-lg text-charcoal">From the field</h2>
+              <span className="label-eyebrow text-gold">Destinations</span>
+              <h2 id="destinations-heading" className="heading-display text-ivory mt-1"
+                style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+                Six Places That Define Ethiopia
+              </h2>
             </div>
-            <Link href="/sawla-moments" className="group flex items-center gap-1.5 font-body text-[0.6875rem] tracking-[0.13em] uppercase text-warmgrey hover:text-gold transition-colors duration-300 pb-1.5">
-              All stories <Arrow className="transition-transform duration-350 group-hover:translate-x-1" />
-            </Link>
-          </div>
+            <Link href="/ethiopias-popular-destinations"
+              className="btn-ghost-light flex-shrink-0">All 16 Destinations</Link>
+          </AnimateIn>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-sand reveal">
-            {/* Feature article */}
-            <Link href={`/sawla-moments/${siteData.moments[0].slug}`} className="group relative overflow-hidden lg:col-span-1 min-h-[480px] bg-charcoal">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0D1A08] via-[#1A3A14] to-[#0A1A0A] transition-transform duration-700 ease-luxury group-hover:scale-[1.04]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-8">
-                <div className="font-body text-[0.6rem] tracking-[0.18em] uppercase text-gold mb-3">{siteData.moments[0].category}</div>
-                <h3 className="font-display font-light text-[1.875rem] text-ivory leading-[1.2] mb-3">{siteData.moments[0].title}</h3>
-                <div className="font-body text-[0.6875rem] text-ivory/38">{siteData.moments[0].readTime} read · {siteData.moments[0].location}</div>
-                <div className="flex items-center gap-1.5 font-body text-[0.6rem] tracking-[0.16em] uppercase text-gold mt-3 opacity-0 translate-y-1.5 transition-all duration-400 ease-luxury group-hover:opacity-100 group-hover:translate-y-0">
-                  Read story <Arrow />
-                </div>
-              </div>
-            </Link>
-
-            {/* Secondary articles */}
-            <div className="lg:col-span-2 flex flex-col gap-px">
-              {siteData.moments.slice(1).map((m) => (
-                <Link
-                  key={m.slug}
-                  href={`/sawla-moments/${m.slug}`}
-                  className="group relative overflow-hidden min-h-[240px] flex-1 bg-charcoal"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-volcanic to-charcoal transition-transform duration-700 ease-luxury group-hover:scale-[1.04]" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-7">
-                    <div className="font-body text-[0.6rem] tracking-[0.18em] uppercase text-gold mb-2">{m.category}</div>
-                    <h3 className="font-display font-light text-[1.25rem] text-ivory leading-[1.2] mb-2">{m.title}</h3>
-                    <div className="font-body text-[0.6875rem] text-ivory/38">{m.readTime} read</div>
-                    <div className="flex items-center gap-1.5 font-body text-[0.6rem] tracking-[0.16em] uppercase text-gold mt-2 opacity-0 translate-y-1.5 transition-all duration-400 ease-luxury group-hover:opacity-100 group-hover:translate-y-0">
-                      Read story <Arrow />
+          <AnimateStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
+            {featuredDests.map(dest => (
+              <div key={dest.slug} style={{...({} as object)}}>
+                <Link href={"/ethiopias-popular-destinations/" + dest.slug}
+                  className="group relative overflow-hidden rounded-card aspect-[4/3] block card-hover"
+                  aria-label={dest.name + " — " + dest.tagline}>
+                  <PlaceholderImage
+                    filename={"dest-" + dest.slug + "-hero.jpg"}
+                    width={600} height={450} category="destination" fill
+                    className="group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="image-overlay" />
+                  <div className="absolute inset-0 flex flex-col justify-end p-6">
+                    <span className="label-eyebrow text-gold !mb-1 text-[10px]">{dest.region}</span>
+                    <h3 className="font-display text-ivory font-light leading-tight"
+                      style={{fontSize:"clamp(1.25rem,2.5vw,1.75rem)"}}>{dest.name}</h3>
+                    <p className="text-ivory/65 font-body mt-1.5 leading-snug"
+                      style={{fontSize:"0.8125rem"}}>{dest.tagline}</p>
+                    <div className="flex items-center gap-1.5 mt-3 text-gold"
+                      style={{fontSize:"11px",letterSpacing:"0.12em",textTransform:"uppercase"}}>
+                      Explore <IconArrow />
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
-          </div>
+              </div>
+            ))}
+          </AnimateStagger>
         </div>
       </section>
 
-      {/* 10 ── ENQUIRY */}
-      <section id="enquire" className="bg-volcanic py-36 px-12 relative overflow-hidden">
-        <div className="absolute top-1/2 -left-[20%] w-[40%] pb-[40%] rounded-full -translate-y-1/2 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(201,148,26,0.04) 0%, transparent 70%)' }} />
-        <div className="max-w-container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-          <div className="reveal">
-            <p className="label-eyebrow" style={{ color: 'rgba(201,148,26,0.8)' }}>Start here</p>
-            <h2 className="font-display font-light text-display-lg text-ivory mb-6">
-              Every journey<br />begins with<br /><em className="italic text-ivory/42">one question</em>
+      {/* ══ 5. TOUR STYLES ════════════════════════════════════════════════ */}
+      <section className="section-padding bg-ivory" aria-labelledby="tour-styles-heading">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-14">
+            <span className="label-eyebrow">Experiences</span>
+            <h2 id="tour-styles-heading" className="heading-display text-volcanic mt-1"
+              style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              What Brings You to Ethiopia?
             </h2>
-            <p className="font-body text-[0.9375rem] text-ivory/50 leading-[1.85] mb-8">
-              Tell us what you&apos;re looking for. We&apos;ll come back within 24 hours with a first conversation, not a brochure.
+            <p className="text-warmgrey font-body mt-4 max-w-2xl mx-auto"
+              style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+              Every journey starts with one of these entry points — and almost always becomes something more.
             </p>
-            <div className="flex flex-col gap-3">
-              {[
-                'No booking fees. No obligation.',
-                'Response within 24 hours, always.',
-                'Speak directly with a specialist — not a call centre.',
-                'WhatsApp: +251 970 578 306',
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2.5 font-body text-[0.8125rem] text-ivory/50">
-                  <span className="w-1 h-1 rounded-full bg-gold flex-shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
+          </AnimateIn>
 
-          {/* Form */}
-          <div className="border border-ivory/10 bg-ivory/[0.04] p-10 reveal">
-            <h3 className="font-display font-light text-[1.5rem] text-ivory mb-1">Plan your journey</h3>
-            <p className="font-body text-[0.8125rem] text-ivory/42 mb-8">A first conversation, not a form submission.</p>
-
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: 'First name', type: 'text', placeholder: 'Your name' },
-                  { label: 'Country', type: 'text', placeholder: 'Where you\'re from' },
-                ].map(({ label, type, placeholder }) => (
-                  <div key={label}>
-                    <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">{label}</label>
-                    <input
-                      type={type}
-                      placeholder={placeholder}
-                      className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                    />
+          <AnimateStagger className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5" staggerDelay={0.07}>
+            {TOUR_STYLES.map(style => (
+              <div key={style.slug}>
+                <Link href={"/tours-by-experience/" + style.slug}
+                  className="group relative overflow-hidden rounded-card aspect-[4/3] block"
+                  aria-label={style.name}>
+                  <PlaceholderImage
+                    filename={"home-style-" + style.slug + ".jpg"}
+                    width={600} height={450} category="tour" fill
+                    className="group-hover:scale-108 transition-transform duration-700"
+                  />
+                  <div className="image-overlay-center group-hover:opacity-90 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
+                    <span className="label-eyebrow text-gold !mb-1 text-[10px]">{style.name}</span>
+                    <p className="text-ivory/75 font-body leading-snug" style={{fontSize:"0.8125rem"}}>{style.tagline}</p>
                   </div>
-                ))}
+                </Link>
               </div>
+            ))}
+          </AnimateStagger>
 
-              <div>
-                <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Email</label>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                />
-              </div>
+          <AnimateIn delay={0.2} className="text-center mt-10">
+            <Link href="/tours-by-experience" className="btn-ghost">See all 36 itineraries</Link>
+          </AnimateIn>
+        </div>
+      </section>
 
-              <div>
-                <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Travel style</label>
-                <select className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors duration-300 appearance-none">
-                  <option value="">Select a style</option>
-                  {siteData.tourStyles.map((s) => <option key={s.slug} value={s.slug}>{s.name}</option>)}
-                  <option value="unsure">Not sure yet</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Duration</label>
-                  <select className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors duration-300 appearance-none">
-                    <option>Select</option>
-                    <option>7–10 days</option>
-                    <option>10–14 days</option>
-                    <option>14–21 days</option>
-                    <option>21+ days</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Party size</label>
-                  <select className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors duration-300 appearance-none">
-                    <option>Select</option>
-                    <option>Solo</option>
-                    <option>2 people</option>
-                    <option>3–5 people</option>
-                    <option>Group 6+</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Tell us what matters</label>
-                <textarea
-                  rows={4}
-                  placeholder="What do you want to feel? What have you already seen? What's non-negotiable?"
-                  className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300 resize-none"
-                />
-              </div>
-
-              <button
-                type="button"
-                className="w-full bg-gold hover:bg-gold-light text-volcanic font-body text-[0.6875rem] tracking-[0.14em] uppercase border-none py-4 cursor-pointer transition-colors duration-300 mt-1"
-              >
-                Send Enquiry
-              </button>
-            </div>
+      {/* ══ 6. TRIP WIZARD ═══════════════════════════════════════════════ */}
+      <section className="section-padding bg-gold-faint" aria-labelledby="wizard-heading">
+        <div className="container-max">
+          <div className="max-w-3xl mx-auto">
+            <AnimateIn className="text-center mb-12">
+              <span className="label-eyebrow">Plan Your Journey</span>
+              <h2 id="wizard-heading" className="heading-display text-volcanic mt-1"
+                style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+                Plan Your Ethiopia Journey in 5 Steps
+              </h2>
+              <p className="text-warmgrey font-body mt-4" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+                Tell us what matters. We will do the rest.
+              </p>
+            </AnimateIn>
+            <AnimateIn delay={0.15} className="bg-ivory rounded-card p-8 md:p-12 border border-sand/60">
+              <TripWizard />
+            </AnimateIn>
           </div>
         </div>
       </section>
 
-      {/* Keyframe styles */}
-      <style jsx global>{`
-        @keyframes fadeIn  { from { opacity: 0 }                         to { opacity: 1 } }
-        @keyframes fadeUp  { from { opacity: 0; transform: translateY(24px) } to { opacity: 1; transform: translateY(0) } }
-        @keyframes lineUp  { from { opacity: 0; transform: translateY(105%) } to { opacity: 1; transform: translateY(0) } }
-        @keyframes scrollDrop { 0% { top: -100% } 60%, 100% { top: 110% } }
-      `}</style>
+      {/* ══ 7. WHY SAWLA ══════════════════════════════════════════════════ */}
+      <section className="section-padding bg-ivory" aria-labelledby="why-heading">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-14">
+            <span className="label-eyebrow">Why Travel with Us</span>
+            <h2 id="why-heading" className="heading-display text-volcanic mt-1"
+              style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              Three Reasons Sawla Travelers Come Back
+            </h2>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-8 lg:gap-12" staggerDelay={0.12}>
+            {[
+              { n:"01", title:"Locally rooted, not remotely managed", body:"Every specialist, guide, and driver on your journey is Ethiopian. People who grew up with this country, studied it, and return to it daily.", link:"/meet-our-travel-specialists", label:"Meet our specialists" },
+              { n:"02", title:"Sawla Films: the evidence is already shot", body:"We operate an in-house documentary division. The only Ethiopian tour company that does. We can show you what a journey with us actually looks like before you book.", link:"/tours-by-experience/ethiopia-photography-tours", label:"Photography tours" },
+              { n:"03", title:"Your itinerary starts with a conversation", body:"We do not start planning by choosing from a menu. We start by asking what you care about, how you travel, and what you want to feel. The route comes after.", link:"/how-we-work", label:"How we work" },
+            ].map(card => (
+              <article key={card.n} className="group relative border-t border-sand pt-8">
+                <div className="font-display text-gold/25 font-light leading-none mb-5" style={{fontSize:"clamp(3rem,6vw,5rem)"}}>{card.n}</div>
+                <h3 className="font-display text-volcanic font-normal leading-snug mb-4" style={{fontSize:"clamp(1.25rem,2vw,1.625rem)"}}>{card.title}</h3>
+                <p className="text-warmgrey font-body leading-relaxed mb-6" style={{fontSize:"1rem"}}>{card.body}</p>
+                <Link href={card.link} className="inline-flex items-center gap-2 text-gold hover:text-volcanic transition-colors font-body font-medium group cursor-pointer" style={{fontSize:"11.5px",letterSpacing:"0.1em",textTransform:"uppercase"}}>
+                  {card.label} <span className="group-hover:translate-x-1 transition-transform"><IconArrow /></span>
+                </Link>
+              </article>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      {/* ══ 8. SAWLA FILMS ════════════════════════════════════════════════ */}
+      <section className="section-padding bg-volcanic relative overflow-hidden" aria-labelledby="films-heading">
+        <div className="absolute inset-0 opacity-[0.035]" style={{backgroundImage:"radial-gradient(ellipse 80% 60% at 50% 50%, #c9941a 0%, transparent 100%)"}} aria-hidden="true" />
+        <div className="container-max relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <AnimateIn>
+              <span className="label-eyebrow text-gold">Sawla Films</span>
+              <h2 id="films-heading" className="heading-display text-ivory mt-1 mb-6"
+                style={{fontSize:"clamp(2rem,4vw,3.5rem)"}}>
+                We Don&apos;t Just Plan Ethiopia.
+                <span className="block">We Document It.</span>
+              </h2>
+              <p className="text-ivory/65 font-body leading-relaxed mb-5" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+                Sawla Films is our in-house documentary division — an asset no other Ethiopian tour operator has. Years of filming landscapes, ceremonies, wildlife, and communities that define this country.
+              </p>
+              <p className="text-ivory/65 font-body leading-relaxed mb-8" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+                For travelers who want to film their own journey, our team joins as production support — handling permissions, locations, local knowledge, and equipment logistics.
+              </p>
+              <blockquote className="border-l-2 border-gold/50 pl-5 text-gold font-display font-light italic mb-10 leading-relaxed" style={{fontSize:"clamp(1.125rem,2vw,1.375rem)"}}>
+                &ldquo;The only Ethiopian tour company with an in-house documentary division.&rdquo;
+              </blockquote>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer" className="btn-ghost-light">Watch Sawla Films</a>
+                <Link href="/tours-by-experience/ethiopia-photography-tours" className="btn-ghost-light">Photography Tours</Link>
+              </div>
+            </AnimateIn>
+            <AnimateIn delay={0.2} className="relative rounded-card overflow-hidden aspect-video bg-white/5 border border-white/10">
+              <PlaceholderImage filename="home-sawla-films-hero.jpg" width={1280} height={720} category="moments" fill />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <a href={SITE.social.youtube} target="_blank" rel="noopener noreferrer"
+                  className="w-20 h-20 rounded-full bg-white/12 backdrop-blur-sm border border-white/25 flex items-center justify-center hover:bg-white/22 transition-all duration-300 group cursor-pointer"
+                  aria-label="Watch Sawla Films on YouTube">
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="white" aria-hidden="true" className="ml-1 group-hover:scale-110 transition-transform">
+                    <path d="M8 4.5l11 6.5-11 6.5V4.5z"/>
+                  </svg>
+                </a>
+              </div>
+            </AnimateIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ 9. HOW IT WORKS ═══════════════════════════════════════════════ */}
+      <section className="section-padding bg-ivory" aria-labelledby="process-heading">
+        <div className="container-max">
+          <AnimateIn className="max-w-2xl mx-auto text-center mb-16">
+            <span className="label-eyebrow">The Process</span>
+            <h2 id="process-heading" className="heading-display text-volcanic mt-1"
+              style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              Planning a Sawla Tour: Four Steps
+            </h2>
+            <p className="text-warmgrey font-body mt-4" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+              No forms to fill in, no packages to choose. Just a conversation.
+            </p>
+          </AnimateIn>
+          <div className="relative">
+            <div className="hidden md:block absolute top-7 left-[12.5%] right-[12.5%] h-px bg-sand" aria-hidden="true" />
+            <AnimateStagger className="grid md:grid-cols-4 gap-8" staggerDelay={0.1}>
+              {[
+                { n:"1", t:"You tell us what matters", b:"What to see, feel, understand. How you travel. Send a message and we take it from there." },
+                { n:"2", t:"We design your route", b:"A bespoke itinerary built around what you told us, with honest trade-offs and reasons for each choice." },
+                { n:"3", t:"We refine it together", b:"Most journeys improve through conversation. Adjust pace, accommodation, destinations. Typically 2-3 refinements." },
+                { n:"4", t:"You travel with local support", b:"Your guide, driver, and planning specialist are all reachable. If conditions change, we adapt." },
+              ].map(step => (
+                <div key={step.n} className="relative z-10 flex flex-col items-start md:items-center text-left md:text-center">
+                  <div className="w-14 h-14 rounded-full border border-gold/35 bg-ivory flex items-center justify-center mb-6 flex-shrink-0">
+                    <span className="font-display text-gold font-light" style={{fontSize:"1.25rem"}}>{step.n}</span>
+                  </div>
+                  <h3 className="font-display text-volcanic font-normal leading-snug mb-3" style={{fontSize:"clamp(1.125rem,1.75vw,1.375rem)"}}>{step.t}</h3>
+                  <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"0.875rem"}}>{step.b}</p>
+                </div>
+              ))}
+            </AnimateStagger>
+          </div>
+          <AnimateIn delay={0.2} className="text-center mt-14">
+            <Link href="/enquire" className="btn-primary">Start a Conversation</Link>
+          </AnimateIn>
+        </div>
+      </section>
+
+      {/* ══ 10. TESTIMONIALS ═══════════════════════════════════════════════ */}
+      <section className="section-padding bg-gold-faint/50" aria-labelledby="testimonials-heading">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-14">
+            <span className="label-eyebrow">What Travelers Say</span>
+            <h2 id="testimonials-heading" className="heading-display text-volcanic mt-1"
+              style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+              In Their Own Words
+            </h2>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-6" staggerDelay={0.1}>
+            {homeTestimonials.map(tm => (
+              <blockquote key={tm.id} className="bg-ivory rounded-card p-8 border border-sand/70 flex flex-col card-hover">
+                <div className="flex gap-1 mb-5">
+                  {[1,2,3,4,5].map(i => (
+                    <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#c9941a" aria-hidden="true">
+                      <path d="M7 1l1.68 3.4 3.75.55-2.71 2.64.64 3.73L7 9.77 3.64 11.32l.64-3.73L1.57 4.95l3.75-.55L7 1z"/>
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-warmgrey font-body italic leading-relaxed flex-1" style={{fontSize:"1rem"}}>{tm.fullQuote}</p>
+                <footer className="mt-8 flex items-center gap-3 pt-6 border-t border-sand/60">
+                  <div className="w-10 h-10 rounded-full bg-sand/70 flex items-center justify-center text-coffee text-sm font-body font-medium flex-shrink-0">{tm.initials}</div>
+                  <div>
+                    <div className="font-body font-medium text-volcanic" style={{fontSize:"13.5px"}}>{tm.name} {tm.countryFlag}</div>
+                    <div className="text-warmgrey font-body mt-0.5" style={{fontSize:"12px"}}>{tm.tripType}</div>
+                  </div>
+                </footer>
+              </blockquote>
+            ))}
+          </AnimateStagger>
+          <AnimateIn delay={0.2} className="text-center mt-10">
+            <Link href="/testimonials" className="btn-ghost">Read all traveller stories</Link>
+          </AnimateIn>
+        </div>
+      </section>
+
+      {/* ══ 11. SAWLA MOMENTS ══════════════════════════════════════════════ */}
+      <section className="section-padding bg-ivory" aria-labelledby="moments-heading">
+        <div className="container-max">
+          <AnimateIn className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+            <div>
+              <span className="label-eyebrow">Sawla Moments</span>
+              <h2 id="moments-heading" className="heading-display text-volcanic mt-1"
+                style={{fontSize:"clamp(1.75rem,3.5vw,2.75rem)"}}>
+                From Our Field Notes
+              </h2>
+            </div>
+            <Link href="/sawla-moments" className="btn-ghost flex-shrink-0">All Moments</Link>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-6" staggerDelay={0.1}>
+            {MOMENTS_ARTICLES.map(article => (
+              <div key={article.slug}>
+                <Link href={"/sawla-moments/" + article.slug}
+                  className="group bg-white rounded-card overflow-hidden border border-sand/60 card-hover block">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-sand/30">
+                    <PlaceholderImage filename={article.heroImage} width={600} height={337} category="moments" fill
+                      className="group-hover:scale-105 transition-transform duration-600" />
+                  </div>
+                  <div className="p-6">
+                    <span className="label-eyebrow text-gold !mb-2">{article.category}</span>
+                    <h3 className="font-display text-volcanic font-normal leading-snug mb-3 group-hover:text-gold transition-colors duration-200"
+                      style={{fontSize:"clamp(1.125rem,1.75vw,1.375rem)"}}>
+                      {article.title}
+                    </h3>
+                    <p className="text-warmgrey font-body mb-5 leading-relaxed" style={{fontSize:"0.875rem"}}>{article.teaser}</p>
+                    <span className="inline-flex items-center gap-1.5 text-gold font-body font-medium group-hover:gap-2.5 transition-all"
+                      style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>
+                      {article.readingTime} min read <IconArrow />
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      {/* ══ 12. FINAL CTA ══════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden py-32 md:py-44" aria-labelledby="cta-heading">
+        <div className="absolute inset-0" aria-hidden="true">
+          <PlaceholderImage filename="home-cta-background.jpg" width={1920} height={900} category="home" fill />
+          <div className="absolute inset-0 bg-volcanic/72" />
+        </div>
+        <div className="relative z-10 container-max text-center">
+          <AnimateIn>
+            <span className="label-eyebrow text-gold">Begin Your Journey</span>
+            <h2 id="cta-heading" className="heading-display text-ivory mt-4 mb-6 max-w-3xl mx-auto"
+              style={{fontSize:"clamp(2rem,4.5vw,4rem)"}}>
+              Your Ethiopia Journey Starts With a Conversation
+            </h2>
+            <p className="text-ivory/70 font-body max-w-xl mx-auto mb-10 leading-relaxed"
+              style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
+              Tell us what draws you to Ethiopia. Our specialists will take it from there.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/enquire" className="btn-gold py-4 px-10">Start Planning Now</Link>
+              <Link href="/tours-by-experience" className="btn-ghost-light">Explore Itineraries</Link>
+            </div>
+            <p className="mt-10 text-ivory/35 font-body" style={{fontSize:"11.5px",letterSpacing:"0.14em",textTransform:"uppercase"}}>
+              Ethiopia-based team &middot; Private tailor-made journeys &middot; No booking fees to enquire
+            </p>
+          </AnimateIn>
+        </div>
+      </section>
     </>
   )
 }

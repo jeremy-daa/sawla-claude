@@ -1,229 +1,200 @@
-// SAWLA TOURS — JSON-LD SCHEMA LIBRARY
 // lib/schema.ts
-// Usage: import { generateTourSchema, generateDestinationSchema } from '@/lib/schema'
+// Sawla Tours — JSON-LD Schema definitions for all page types
 
-const BASE_URL = 'https://www.sawlatours.com'
-const ORG_ID   = `${BASE_URL}/#organization`
-
-// ─── Organization (shared across all pages) ───────────────────────────────
-export const organizationSchema = {
-  '@type': ['TravelAgency', 'LocalBusiness', 'Organization'],
-  '@id': ORG_ID,
-  name: 'Sawla Tours',
-  url: BASE_URL,
-  logo: `${BASE_URL}/images/sawla-tours-logo.png`,
-  telephone: '+251705783060',
-  email: 'explore@sawlatours.com',
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Addis Ababa',
-    addressCountry: 'ET',
-  },
-  geo: { '@type': 'GeoCoordinates', latitude: 9.032, longitude: 38.7469 },
-  foundingDate: '2009',
-  areaServed: { '@type': 'Country', name: 'Ethiopia' },
-  priceRange: '$$$',
+export const homepageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.sawlatours.com/#website',
+      name: 'Sawla Tours',
+      url: 'https://www.sawlatours.com/',
+      description: 'Ethiopia-based tour operator designing private, tailor-made Ethiopia journeys.',
+      publisher: { '@id': 'https://www.sawlatours.com/#travelagency' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: 'https://www.sawlatours.com/?s={search_term_string}' },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': ['TravelAgency', 'LocalBusiness'],
+      '@id': 'https://www.sawlatours.com/#travelagency',
+      name: 'Sawla Tours',
+      description: 'Ethiopia-based tour operator designing private, tailor-made Ethiopia journeys across cultural, historic, wildlife, festival, photography, trekking, and remote travel routes.',
+      url: 'https://www.sawlatours.com/',
+      foundingDate: '2009',
+      areaServed: { '@type': 'Country', name: 'Ethiopia' },
+      address: { '@type': 'PostalAddress', addressLocality: 'Addis Ababa', addressCountry: 'ET' },
+      email: 'explore@sawlatours.com',
+      telephone: '+25170578306',
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        telephone: '+25170578306',
+        email: 'explore@sawlatours.com',
+        availableLanguage: ['English', 'Amharic'],
+        hoursAvailable: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '09:00',
+          closes: '17:30',
+        },
+      },
+      sameAs: ['https://www.facebook.com/sawlatours', 'https://www.instagram.com/sawlatours'],
+      knowsAbout: [
+        'Ethiopia tours', 'Lalibela', 'Simien Mountains', 'Bale Mountains', 'Omo Valley',
+        'Danakil Depression', 'Tigray', 'Ethiopia cultural tours', 'Ethiopia wildlife tours',
+        'Ethiopia photography tours', 'Ethiopia trekking', 'Ethiopia birding',
+        'Ethiopia festival tours', 'Ethiopian wolf', 'Gelada monkeys', 'endemic species Ethiopia',
+        'mobile tented camps Ethiopia', 'tailor-made Ethiopia journeys',
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://www.sawlatours.com/#faqpage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What kind of Ethiopia tours does Sawla Tours organise?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sawla Tours organises private, tailor-made Ethiopia tours including cultural journeys, historic routes, wildlife and birding trips, photography tours, festival trips, trekking itineraries, Omo Valley journeys, Danakil expeditions, and remote mobile camp experiences. Every journey is designed around the individual traveler\'s interests, pace, and comfort level.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is Sawla Tours based in Ethiopia?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Yes. Sawla Tours is an Ethiopia-based tour operator with local travel specialists, guides, drivers, and field teams who plan and operate journeys on the ground. The team is based in Addis Ababa and has been operating since 2009.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can Sawla Tours customise a fully private Ethiopia itinerary?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Yes. Sawla Tours specialises in private, tailor-made journeys. The planning process starts with your travel interests, preferred pace, comfort level, group size, dates, and destinations. The team then builds a bespoke route around those details, with revisions until the itinerary feels right.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Which Ethiopia destinations can Sawla Tours include in a tour?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sawla Tours can design trips including Addis Ababa, Lalibela, Gondar, Bahir Dar, Simien Mountains, Bale Mountains, Omo Valley, Danakil Depression, Harar, Tigray and Gheralta rock churches, Rift Valley lakes, Kafa Biosphere Reserve, and other regions depending on current access conditions.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does Sawla Tours arrange guides, vehicles, and logistics?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Yes. Sawla Tours arranges experienced local guides, vehicles, drivers, domestic flight coordination, accommodations, permits where required, mobile camp logistics, and on-the-ground support throughout the journey.' },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is Ethiopia suitable for first-time visitors?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Ethiopia can be deeply rewarding for first-time visitors when the trip is planned carefully. A good first journey typically balances Addis Ababa, the northern historic route, Lalibela, and the Simien Mountains or Bale Mountains. More remote destinations such as Danakil and Omo Valley are better suited to travelers with some prior Africa travel experience or with extra time to prepare.' },
+        },
+      ],
+    },
+  ],
 }
 
-// ─── Tour / Itinerary schema ───────────────────────────────────────────────
-export function generateTourSchema({
-  name,
-  description,
-  slug,
-  style,
-  duration,
-  priceFrom,
-  destinations,
-  image,
-}: {
-  name: string
+export function articleSchema(params: {
+  url: string
+  title: string
   description: string
-  slug: string
-  style: string
-  duration: string
-  priceFrom: number
-  destinations: string[]
+  datePublished: string
   image: string
 }) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'TouristTrip',
-    '@id': `${BASE_URL}/tours-by-experience/${style}/${slug}`,
-    name,
-    description,
-    url: `${BASE_URL}/tours-by-experience/${style}/${slug}`,
-    image,
-    touristType: 'Cultural Tourism, Wildlife Tourism, Adventure Tourism',
-    itinerary: {
-      '@type': 'ItemList',
-      itemListElement: destinations.map((dest, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        name: dest,
-      })),
+    '@type': 'Article',
+    headline: params.title,
+    description: params.description,
+    datePublished: params.datePublished,
+    dateModified: params.datePublished,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Sawla Tours',
+      url: 'https://www.sawlatours.com',
     },
-    offers: {
-      '@type': 'Offer',
-      price: priceFrom,
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-      seller: { '@id': ORG_ID },
-    },
-    provider: { '@id': ORG_ID },
+    image: params.image,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': params.url },
   }
 }
 
-// ─── Destination schema ────────────────────────────────────────────────────
-export function generateDestinationSchema({
-  name,
-  slug,
-  description,
-  image,
-  region,
-}: {
+export function destinationSchema(params: {
   name: string
-  slug: string
+  url: string
   description: string
   image: string
-  region: string
+  region?: string
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'TouristDestination',
-    '@id': `${BASE_URL}/ethiopias-popular-destinations/${slug}`,
-    name: `${name}, Ethiopia`,
-    description,
-    url: `${BASE_URL}/ethiopias-popular-destinations/${slug}`,
-    image,
-    geo: { '@type': 'GeoCoordinates' }, // fill with actual coords per destination
-    containedInPlace: {
-      '@type': 'Country',
-      name: 'Ethiopia',
-      '@id': 'https://www.wikidata.org/wiki/Q115',
-    },
-    touristType: ['Heritage Tourism', 'Cultural Tourism', 'Wildlife Tourism'],
+    name: params.name,
+    description: params.description,
+    url: params.url,
+    image: params.image,
+    touristType: ['CulturalTourist', 'AdventureTourist', 'EcoTourist'],
+    containedInPlace: { '@type': 'Country', name: 'Ethiopia' },
   }
 }
 
-// ─── Species / Wildlife page schema ───────────────────────────────────────
-export function generateSpeciesSchema({
-  commonName,
-  latinName,
-  slug,
-  description,
-  image,
-  iucnStatus,
-}: {
-  commonName: string
-  latinName: string
-  slug: string
-  description: string
-  image: string
-  iucnStatus: string
-}) {
+export function breadcrumbSchema(items: { name: string; url: string }[]) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    '@id': `${BASE_URL}/ethiopia-wildlife/${slug}`,
-    headline: `${commonName} (${latinName}) — Ethiopia Endemic Wildlife Guide`,
-    description,
-    url: `${BASE_URL}/ethiopia-wildlife/${slug}`,
-    image,
-    author: { '@id': ORG_ID },
-    publisher: { '@id': ORG_ID },
-    about: {
-      '@type': 'Taxon',
-      name: latinName,
-      vernacularName: commonName,
-      taxonRank: 'Species',
-    },
-    keywords: `${commonName}, ${latinName}, Ethiopia endemic wildlife, ${iucnStatus}`,
-  }
-}
-
-// ─── Article / Moments schema ──────────────────────────────────────────────
-export function generateArticleSchema({
-  title,
-  slug,
-  description,
-  image,
-  datePublished,
-  dateModified,
-}: {
-  title: string
-  slug: string
-  description: string
-  image: string
-  datePublished: string
-  dateModified?: string
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    '@id': `${BASE_URL}/sawla-moments/${slug}`,
-    headline: title,
-    description,
-    url: `${BASE_URL}/sawla-moments/${slug}`,
-    image,
-    datePublished,
-    dateModified: dateModified || datePublished,
-    author: { '@id': ORG_ID },
-    publisher: { '@id': ORG_ID },
-    mainEntityOfPage: `${BASE_URL}/sawla-moments/${slug}`,
-  }
-}
-
-// ─── FAQ schema ────────────────────────────────────────────────────────────
-export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      item: item.url,
     })),
   }
 }
 
-// ─── Field Guide (HowTo / Article) schema ─────────────────────────────────
-export function generateGuideSchema({
-  title,
-  slug,
-  description,
-  image,
-}: {
-  title: string
-  slug: string
-  description: string
-  image: string
+// ── ItemList schema (hub pages) ────────────────────────────────────────
+export function itemListSchema(params: {
+  name: string
+  url: string
+  items: { name: string; url: string; description?: string }[]
 }) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    '@id': `${BASE_URL}/ethiopia-travel-guide/${slug}`,
-    headline: title,
-    description,
-    url: `${BASE_URL}/ethiopia-travel-guide/${slug}`,
-    image,
-    author: { '@id': ORG_ID },
-    publisher: { '@id': ORG_ID },
-    about: { '@type': 'Country', name: 'Ethiopia' },
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: params.name,
+    url: params.url,
+    numberOfItems: params.items.length,
+    itemListElement: params.items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      url: item.url,
+      ...(item.description ? { description: item.description } : {}),
+    })),
   }
 }
 
-// ─── Breadcrumb schema ─────────────────────────────────────────────────────
-export function generateBreadcrumbSchema(
-  items: { name: string; url: string }[]
-) {
+// ── Tour / TouristTrip schema ────────────────────────────────────────────
+export function tourSchema(params: {
+  name: string
+  url: string
+  description: string
+  image: string
+  duration?: string
+}) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map(({ name, url }, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      name,
-      item: url,
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    name: params.name,
+    description: params.description,
+    url: params.url,
+    image: params.image,
+    provider: { "@type": "TravelAgency", name: "Sawla Tours", url: "https://www.sawlatours.com" },
+    ...(params.duration ? { duration: params.duration } : {}),
+  }
+}
+// ── FAQ Page schema ─────────────────────────────────────────────────────────
+export function faqSchema(items: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(({ q, a }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: { "@type": "Answer", text: a },
     })),
   }
 }

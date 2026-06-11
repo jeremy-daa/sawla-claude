@@ -1,282 +1,340 @@
-'use client'
-import { useState } from 'react'
-import Link from 'next/link'
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import PlaceholderImage from '@/components/ui/PlaceholderImage'
+import SchemaScript from '@/components/ui/SchemaScript'
+import { TOUR_STYLES, SITE } from '@/data/siteData'
 
-// NOTE: move metadata to a separate server component wrapper if needed
-// export const metadata: Metadata = {
-//   title: 'Plan Your Ethiopia Journey | Sawla Tours',
-//   description: 'Tell us what you want to feel. We\'ll build your Ethiopia journey from scratch and come back within 24 hours. No booking fees. No obligation.',
-// }
+export const metadata: Metadata = {
+  title: 'Plan Your Private Ethiopia Tour | Contact Sawla Tours',
+  description: 'Contact Sawla Tours to start planning your private Ethiopia journey. Our Addis Ababa team responds within 24 hours. No packages — only tailor-made trips.',
+  openGraph: { title: 'Plan Your Ethiopia Journey | Sawla Tours' },
+}
 
-const Arrow = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-)
+const enquireSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ContactPage',
+      '@id': 'https://www.sawlatours.com/enquire/#contactpage',
+      url: 'https://www.sawlatours.com/enquire/',
+      name: 'Contact Sawla Tours',
+      description: 'Plan a private, tailor-made Ethiopia journey with Sawla Tours — an Addis Ababa-based tour operator.',
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://www.sawlatours.com/enquire/#faq',
+      mainEntity: [
+        { '@type': 'Question', name: 'Do I need a complete itinerary before contacting Sawla Tours?', acceptedAnswer: { '@type': 'Answer', text: 'No. You can contact Sawla Tours with only a rough idea — travel month, days available, group size, and main interests. The team will help shape the right route from there.' } },
+        { '@type': 'Question', name: 'How quickly does Sawla Tours respond to enquiries?', acceptedAnswer: { '@type': 'Answer', text: 'Sawla Tours responds within 24 hours on business days (Addis Ababa time, EAT UTC+3). Complex tailor-made proposals take 2–3 business days.' } },
+        { '@type': 'Question', name: 'Can Sawla Tours design a fully private Ethiopia tour?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Sawla Tours specialises in private, tailor-made journeys for couples, families, solo travelers, photographers, researchers, film teams, and specialist groups.' } },
+      ],
+    },
+  ],
+}
 
-const TOUR_STYLES = [
-  'Heritage Pilgrimage — Lalibela, Axum, Gondar, Tigray',
-  'Tribal Encounters — Omo Valley',
-  'Frontier Adventure — Danakil Depression',
-  'Wildlife & Birding — Ethiopian wolf, gelada',
-  'Festival Immersion — Timkat, Meskel, Irreecha',
-  'Cinematic Journey — with Sawla Films',
-  'Not sure yet — help me choose',
+const faqs = [
+  { q: 'Do I need a complete itinerary before contacting Sawla Tours?', a: 'No. You can contact us with only a rough idea — your travel month, number of days, group size, and main interests. Our team will help you understand which destinations fit your time, what route makes sense, and what should be adjusted based on current access and season.' },
+  { q: 'How quickly does Sawla Tours respond to enquiries?', a: 'We aim to reply to all enquiries within 24 hours on business days (Addis Ababa time, EAT UTC+3). For complex tailor-made itineraries, our first response outlines a proposed route and may ask follow-up questions before preparing a full proposal, which typically takes 2–3 business days.' },
+  { q: 'Can Sawla Tours design a fully private Ethiopia tour?', a: 'Yes. Sawla Tours specialises in private and tailor-made Ethiopia journeys for couples, families, friends, solo travelers, photographers, researchers, film teams, and special-interest groups.' },
+  { q: 'What information should I include in my enquiry?', a: 'The most useful details are your preferred travel dates, number of travelers, trip duration, interests, accommodation style, and budget level. Even a few sentences is enough to begin.' },
+  { q: 'Can Sawla Tours help with domestic flights and logistics?', a: 'Yes. Sawla Tours can coordinate domestic flights, vehicles, guides, accommodations, transfers, and permits as part of a confirmed itinerary.' },
+  { q: 'Is Ethiopia suitable for first-time visitors?', a: 'Ethiopia can be deeply rewarding for first-time visitors when planned carefully. Many travelers begin with Addis Ababa, Lalibela, Gondar, Bahir Dar, the Simien Mountains, or Bale Mountains.' },
 ]
 
-const DURATIONS = ['7–10 days', '10–14 days', '14–21 days', '21+ days', 'Flexible']
-const PARTY_SIZES = ['Solo', '2 people', '3–4 people', '5–8 people', 'Group 9+']
-const BUDGETS = ['USD 2,000–4,000 pp', 'USD 4,000–7,000 pp', 'USD 7,000–12,000 pp', 'USD 12,000+ pp', 'Flexible / not sure']
-
 export default function EnquirePage() {
-  const [step, setStep] = useState(1)
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', email: '', country: '',
-    style: '', duration: '', partySize: '', budget: '',
-    travelDates: '', message: '', honeypot: '',
-  })
-
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-
-  const handleSubmit = async () => {
-    if (form.honeypot) return // spam trap
-    setLoading(true)
-    try {
-      await fetch('/api/enquire', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      setSubmitted(true)
-    } catch {
-      alert('Something went wrong. Please email us at explore@sawlatours.com')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-volcanic flex items-center justify-center px-6">
-        <div className="text-center max-w-lg">
-          <div className="font-body text-[0.6rem] tracking-[0.18em] uppercase text-gold mb-6">Received</div>
-          <h1 className="font-display font-light text-display-lg text-ivory mb-6">
-            Thank you, {form.firstName}.
-          </h1>
-          <p className="font-body text-[0.9375rem] text-ivory/60 leading-[1.85] mb-8">
-            We'll come back to you within 24 hours with a first conversation, not a brochure. In the meantime, explore our destinations or read a story from the field.
-          </p>
-          <div className="flex items-center justify-center gap-6">
-            <Link href="/ethiopias-popular-destinations" className="btn-primary-ivory">Explore Destinations</Link>
-            <Link href="/sawla-moments" className="btn-ghost-light group flex items-center gap-2">
-              Sawla Moments <Arrow />
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
-      <div className="min-h-screen bg-volcanic pt-32 pb-24 px-6 md:px-12">
-        <div className="max-w-container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+      <SchemaScript schema={enquireSchema} />
 
-          {/* Left — context */}
-          <div>
-            <p className="label-eyebrow" style={{ color: 'rgba(201,148,26,0.8)' }}>Start here</p>
-            <h1 className="font-display font-light text-display-lg text-ivory mb-6">
-              Every journey begins<br />with <em className="italic text-ivory/42">one question</em>
-            </h1>
-            <p className="font-body text-[0.9375rem] text-ivory/52 leading-[1.85] mb-10">
-              Tell us what you're looking for. We'll come back within 24 hours with a first conversation — not a brochure, not a price list. A real response from a specialist who knows Ethiopia.
-            </p>
+      {/* HERO */}
+      <section className="relative pt-20 pb-16 md:pb-20 overflow-hidden min-h-[360px] flex items-end">
+        <div className="absolute inset-0" aria-hidden="true">
+          <PlaceholderImage filename="contact-hero-specialist-planning.jpg" width={1920} height={800} category="home" fill />
+          <div className="absolute inset-0 bg-charcoal/70" />
+        </div>
+        <div className="relative z-10 container-max text-ivory">
+          <span className="label-eyebrow text-gold">Start planning with local experts</span>
+          <h1 className="heading-display text-display-xl text-ivory mt-2">Plan Your Private Ethiopia Journey</h1>
+          <p className="text-ivory/80 text-body-lg mt-4 max-w-2xl">
+            Tell us what brings you to Ethiopia. Our Addis Ababa-based team will help shape your ideas into a thoughtful, tailor-made journey.
+          </p>
+        </div>
+      </section>
 
-            <div className="space-y-4 mb-12">
-              {[
-                'No booking fees. No obligation.',
-                'Response within 24 hours, every day.',
-                'Direct line to a specialist — no call centres.',
-                'WhatsApp available: +251 970 578 306',
-              ].map(item => (
-                <div key={item} className="flex items-center gap-3">
-                  <span className="w-1 h-1 rounded-full bg-gold flex-shrink-0" />
-                  <span className="font-body text-[0.8125rem] text-ivory/55">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Testimonial pull-quote */}
-            <div className="border-l-2 border-gold/40 pl-6">
-              <p className="font-display italic font-light text-[1.125rem] text-ivory/70 leading-[1.65] mb-3">
-                "Sawla Tours spent two hours on the phone with me before we booked. That conversation produced the best trip of my life."
-              </p>
-              <p className="font-body text-[0.75rem] text-ivory/40">Laura W. — United States · 2025</p>
-            </div>
-          </div>
-
-          {/* Right — 2-step form */}
-          <div className="border border-ivory/10 bg-ivory/[0.04] p-8 md:p-10">
-            {/* Step indicator */}
-            <div className="flex items-center gap-3 mb-8">
-              {[1, 2].map(s => (
-                <button
-                  key={s}
-                  onClick={() => s < step && setStep(s)}
-                  className={`w-8 h-8 rounded-full font-body text-[0.75rem] flex items-center justify-center border transition-all duration-300 ${
-                    step === s
-                      ? 'bg-gold border-gold text-volcanic'
-                      : step > s
-                      ? 'bg-ivory/10 border-ivory/20 text-ivory/60 cursor-pointer'
-                      : 'bg-transparent border-ivory/20 text-ivory/30'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-              <span className="font-body text-[0.6875rem] text-ivory/40">
-                {step === 1 ? 'About you' : 'About your journey'}
-              </span>
-            </div>
-
-            {step === 1 && (
-              <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">First name *</label>
-                    <input
-                      type="text"
-                      value={form.firstName}
-                      onChange={e => set('firstName', e.target.value)}
-                      placeholder="Your name"
-                      className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Last name</label>
-                    <input
-                      type="text"
-                      value={form.lastName}
-                      onChange={e => set('lastName', e.target.value)}
-                      placeholder="Last name"
-                      className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Email address *</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={e => set('email', e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Country *</label>
-                  <input
-                    type="text"
-                    value={form.country}
-                    onChange={e => set('country', e.target.value)}
-                    placeholder="Where you're based"
-                    className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                    required
-                  />
-                </div>
-                {/* Honeypot — hidden from users */}
-                <input
-                  type="text"
-                  value={form.honeypot}
-                  onChange={e => set('honeypot', e.target.value)}
-                  style={{ display: 'none' }}
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-                <button
-                  onClick={() => form.firstName && form.email && form.country && setStep(2)}
-                  className="w-full bg-ivory/10 hover:bg-ivory/15 text-ivory font-body text-[0.6875rem] tracking-[0.14em] uppercase border border-ivory/20 py-4 cursor-pointer transition-colors duration-300 mt-2"
-                >
-                  Continue →
-                </button>
+      {/* TRUST BAR */}
+      <div className="bg-charcoal border-b border-white/10">
+        <div className="container-max py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          {[
+            {
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+              t: 'Ethiopia-based team', s: 'Local planning, not remote',
+            },
+            {
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+              t: 'Tailor-made planning', s: 'No package pressure',
+            },
+            {
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>,
+              t: 'Local field knowledge', s: 'Ground-checked routes',
+            },
+            {
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+              t: 'Response within 24 hrs', s: 'Business days, EAT',
+            },
+          ].map(item => (
+            <div key={item.t} className="flex items-center gap-3">
+              <span className="text-gold flex-shrink-0">{item.icon}</span>
+              <div>
+                <div className="text-ivory text-[13px] font-medium">{item.t}</div>
+                <div className="text-ivory/50 text-xs">{item.s}</div>
               </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-5">
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Travel style</label>
-                  <select
-                    value={form.style}
-                    onChange={e => set('style', e.target.value)}
-                    className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors duration-300 appearance-none"
-                  >
-                    <option value="">Select or leave blank</option>
-                    {TOUR_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Duration</label>
-                    <select value={form.duration} onChange={e => set('duration', e.target.value)} className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors appearance-none">
-                      <option value="">Select</option>
-                      {DURATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Party size</label>
-                    <select value={form.partySize} onChange={e => set('partySize', e.target.value)} className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory/70 outline-none focus:border-gold transition-colors appearance-none">
-                      <option value="">Select</option>
-                      {PARTY_SIZES.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Approximate travel dates</label>
-                  <input
-                    type="text"
-                    value={form.travelDates}
-                    onChange={e => set('travelDates', e.target.value)}
-                    placeholder="e.g. January 2027, or flexible"
-                    className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300"
-                  />
-                </div>
-                <div>
-                  <label className="block font-body text-[0.6rem] tracking-[0.16em] uppercase text-ivory/40 mb-2">Tell us what matters *</label>
-                  <textarea
-                    rows={4}
-                    value={form.message}
-                    onChange={e => set('message', e.target.value)}
-                    placeholder="What do you want to feel? What have you already seen? What's non-negotiable?"
-                    className="w-full bg-ivory/[0.06] border border-ivory/15 px-4 py-3 font-body text-[0.875rem] text-ivory placeholder:text-ivory/25 outline-none focus:border-gold transition-colors duration-300 resize-none"
-                    required
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setStep(1)}
-                    className="flex-shrink-0 bg-transparent border border-ivory/20 text-ivory/60 font-body text-[0.6875rem] tracking-[0.14em] uppercase px-6 py-4 cursor-pointer hover:border-ivory/40 transition-colors duration-300"
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading || !form.message}
-                    className="flex-1 bg-gold hover:bg-gold-light disabled:opacity-50 text-volcanic font-body text-[0.6875rem] tracking-[0.14em] uppercase border-none py-4 cursor-pointer transition-colors duration-300"
-                  >
-                    {loading ? 'Sending...' : 'Send Enquiry'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* MAIN: FORM + CONTACT */}
+      <section className="section-padding">
+        <div className="container-max grid lg:grid-cols-3 gap-12 lg:gap-16">
+
+          {/* ── FORM ── */}
+          <div className="lg:col-span-2">
+            <h2 className="heading-display text-display-sm text-charcoal mb-2">Start With What You Know</h2>
+            <p className="text-warmgrey mb-8">You don&apos;t need a complete itinerary. Even a rough idea is enough to begin.</p>
+
+            {/* DEVELOPER: Wire form to CRM/email handler, add honeypot, configure auto-reply */}
+            <form
+              action="/api/enquire"
+              method="POST"
+              className="space-y-6"
+              aria-label="Ethiopia tour enquiry form"
+            >
+              {/* Hidden spam trap */}
+              <input type="text" name="_honey" className="hidden" aria-hidden="true" tabIndex={-1} />
+
+              {/* STEP 1 — REQUIRED */}
+              <fieldset className="space-y-5">
+                <legend className="text-[11px] uppercase tracking-wider text-gold font-500 mb-4">Step 1 — Your basics</legend>
+
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-500 text-charcoal mb-1.5">Full name <span className="text-gold">*</span></label>
+                    <input id="name" name="name" type="text" required placeholder="Your name" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-500 text-charcoal mb-1.5">Email address <span className="text-gold">*</span></label>
+                    <input id="email" name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="whatsapp" className="block text-sm font-500 text-charcoal mb-1.5">WhatsApp / phone number <span className="text-gold">*</span></label>
+                  <input id="whatsapp" name="whatsapp" type="tel" required placeholder="+1 202 555 0100 (include country code)" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
+                  <p className="text-xs text-warmgrey mt-1">WhatsApp is often the easiest way for us to reach you quickly.</p>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="dates" className="block text-sm font-500 text-charcoal mb-1.5">When are you planning to travel? <span className="text-gold">*</span></label>
+                    <input id="dates" name="dates" type="text" required placeholder="e.g. October 2026, or 15–28 November" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
+                  </div>
+                  <div>
+                    <label htmlFor="duration" className="block text-sm font-500 text-charcoal mb-1.5">Trip duration <span className="text-gold">*</span></label>
+                    <select id="duration" name="duration" required className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
+                      <option value="">Select trip length</option>
+                      <option>1–3 days</option>
+                      <option>4–7 days</option>
+                      <option>8–12 days</option>
+                      <option>13–18 days</option>
+                      <option>19+ days</option>
+                      <option>Not sure yet</option>
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* STEP 2 — OPTIONAL */}
+              <fieldset className="space-y-5 pt-6 border-t border-sand">
+                <legend className="text-[11px] uppercase tracking-wider text-gold font-500 mb-4">Step 2 — Your preferences (optional but helpful)</legend>
+
+                <div>
+                  <label htmlFor="travelers" className="block text-sm font-500 text-charcoal mb-1.5">Number of travelers</label>
+                  <input id="travelers" name="travelers" type="text" placeholder="e.g. 2 adults, or 2 adults + 1 child (age 10)" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-500 text-charcoal mb-2">Main interests (select all that apply)</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Historic & cultural', 'Lalibela, Gondar, Axum', 'Omo Valley', 'Simien Mountains trekking', 'Bale Mountains wildlife', 'Danakil expedition', 'Photography tour', 'Birding & wildlife', 'Festival tours', 'Coffee & food', 'Mobile tented camps', 'Not sure yet'].map(interest => (
+                      <label key={interest} className="flex items-center gap-2 text-sm text-charcoal cursor-pointer">
+                        <input type="checkbox" name="interests" value={interest} className="accent-gold w-4 h-4" />
+                        {interest}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="style" className="block text-sm font-500 text-charcoal mb-1.5">Travel style</label>
+                    <select id="style" name="style" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
+                      <option value="">Select a style</option>
+                      <option>Comfortable mid-range</option>
+                      <option>Boutique & character lodges</option>
+                      <option>Luxury where available</option>
+                      <option>Adventure & remote</option>
+                      <option>Cultural immersion</option>
+                      <option>Slow & relaxed pace</option>
+                      <option>Photography-focused</option>
+                      <option>Family-friendly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="budget" className="block text-sm font-500 text-charcoal mb-1.5">Approximate budget per person</label>
+                    <select id="budget" name="budget" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
+                      <option>I prefer to discuss</option>
+                      <option>Up to $2,000 USD</option>
+                      <option>$2,000–$3,500 USD</option>
+                      <option>$3,500–$5,000 USD</option>
+                      <option>$5,000–$8,000 USD</option>
+                      <option>$8,000+ USD</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-500 text-charcoal mb-1.5">Anything else we should know?</label>
+                  <textarea id="message" name="message" rows={5} placeholder="Tell us about your Ethiopia trip idea — destinations, special interests, mobility needs, dietary requirements, or anything that matters for planning." className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm resize-none" />
+                </div>
+
+                <div>
+                  <label htmlFor="source" className="block text-sm font-500 text-charcoal mb-1.5">How did you find us? (optional)</label>
+                  <select id="source" name="source" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
+                    <option value="">Select</option>
+                    <option>Google search</option>
+                    <option>AI search (ChatGPT, Gemini, Perplexity)</option>
+                    <option>Referral from friend or past guest</option>
+                    <option>Social media</option>
+                    <option>Travel article or blog</option>
+                    <option>Previous guest returning</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </fieldset>
+
+              <button type="submit" className="btn-primary w-full justify-center text-[13px] py-4">
+                Send My Enquiry →
+              </button>
+              <p className="text-xs text-warmgrey text-center">No pressure. No generic package. Just a careful first conversation with an Ethiopia-based travel team.</p>
+            </form>
+          </div>
+
+          {/* ── CONTACT SIDEBAR ── */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+
+              {/* Direct contact */}
+              <div className="bg-charcoal rounded-card p-7 text-ivory">
+                <h3 className="font-display text-xl font-light mb-4">Prefer to speak first?</h3>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <div className="text-ivory/50 text-xs uppercase tracking-wider mb-1">Email</div>
+                    <a href={`mailto:${SITE.email}`} className="text-gold hover:text-amber transition-colors">{SITE.email}</a>
+                  </div>
+                  <div>
+                    <div className="text-ivory/50 text-xs uppercase tracking-wider mb-1">WhatsApp / Phone</div>
+                    <a href={`tel:${SITE.phoneE164}`} className="text-ivory hover:text-gold transition-colors">{SITE.phone}</a>
+                  </div>
+                  <div>
+                    <div className="text-ivory/50 text-xs uppercase tracking-wider mb-1">Office</div>
+                    <div className="text-ivory/70">{SITE.address}</div>
+                    <div className="text-ivory/50 text-xs mt-1">Mon–Fri 09:00–17:30 · Sat 10:00–13:00 (EAT)</div>
+                  </div>
+                </div>
+                <a
+                  href={SITE.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 btn-ghost-light w-full justify-center block text-center text-xs"
+                >
+                  Message on WhatsApp
+                </a>
+              </div>
+
+              {/* Experience cards */}
+              <div className="border border-sand rounded-card p-5">
+                <div className="label-eyebrow mb-4">Not sure where to start?</div>
+                <div className="space-y-3">
+                  {TOUR_STYLES.slice(0, 4).map(ts => (
+                    <Link key={ts.slug} href={`/tours-by-experience/${ts.slug}`} className="flex items-center justify-between text-sm group">
+                      <span className="text-charcoal group-hover:text-gold transition-colors">{ts.name}</span>
+                      <span className="text-gold text-xs">→</span>
+                    </Link>
+                  ))}
+                  <Link href="/tours-by-experience" className="text-gold text-xs hover:underline">All tour styles →</Link>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="section-padding-sm bg-sand/20">
+        <div className="container-max max-w-4xl mx-auto">
+          <h2 className="heading-display text-display-sm text-charcoal mb-10 text-center">From First Message to Tailor-Made Journey</h2>
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              { n: '1', t: 'We read your request carefully', b: 'A specialist reviews your details and may ask follow-up questions before suggesting a route.' },
+              { n: '2', t: 'We recommend the best route', b: 'We suggest an itinerary that fits your time, travel style, and current ground conditions.' },
+              { n: '3', t: 'We prepare a tailor-made proposal', b: 'Custom route with accommodations, transport, guiding, and practical planning notes.' },
+              { n: '4', t: 'You refine, confirm, and travel', b: 'Most journeys improve through conversation. Adjust until it feels right. Then we coordinate everything.' },
+            ].map(step => (
+              <div key={step.n}>
+                <div className="w-10 h-10 rounded-full border-2 border-gold/40 flex items-center justify-center mb-4">
+                  <span className="font-display text-gold font-light">{step.n}</span>
+                </div>
+                <h3 className="font-display text-charcoal text-lg font-normal mb-2">{step.t}</h3>
+                <p className="text-warmgrey text-sm">{step.b}</p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/how-we-work" className="text-sm text-gold hover:underline">Read more about how we plan →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="section-padding bg-ivory">
+        <div className="container-max max-w-3xl mx-auto">
+          <h2 className="heading-display text-display-sm text-charcoal mb-10 text-center">Questions Before You Enquire</h2>
+          <div className="space-y-4" role="list">
+            {faqs.map((faq) => (
+              <details key={faq.q} className="border border-sand rounded-card group" role="listitem">
+                <summary className="flex items-center justify-between p-5 cursor-pointer list-none font-body font-500 text-charcoal text-sm hover:text-gold transition-colors">
+                  {faq.q}
+                  <span className="ml-3 text-gold text-lg transition-transform group-open:rotate-45 flex-shrink-0">+</span>
+                </summary>
+                <div className="px-5 pb-5 text-warmgrey text-sm leading-relaxed">{faq.a}</div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="relative section-padding overflow-hidden text-center">
+        <div className="absolute inset-0" aria-hidden="true">
+          <PlaceholderImage filename="contact-cta-coffee-ceremony.jpg" width={1920} height={600} category="home" fill />
+          <div className="absolute inset-0 bg-charcoal/65" />
+        </div>
+        <div className="relative z-10 container-max">
+          <h2 className="heading-display text-display-md text-ivory mb-4">Ready to Begin?</h2>
+          <p className="text-ivory/70 max-w-lg mx-auto mb-8">Your Ethiopia journey doesn&apos;t need to start with a perfect plan. It can start with a question.</p>
+          <a href="#name" className="btn-primary inline-flex">Send Your Enquiry</a>
+        </div>
+      </section>
     </>
   )
 }
