@@ -109,8 +109,8 @@ export default function HeroSection() {
         >
           {[
             { n: "2009", l: "Established" },
-            { n: "16+",  l: "Destinations" },
-            { n: "36+",  l: "Itineraries" },
+            { n: "18",   l: "Destination Guides" },
+            { n: "25",   l: "Signature Journeys" },
           ].map(({ n, l }) => (
             <div key={l} className="text-center">
               <div className="font-display font-light text-ivory"

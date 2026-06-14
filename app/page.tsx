@@ -86,7 +86,7 @@ export default function HomePage() {
                 </blockquote>
                 <div className="divider-gold" />
                 <div className="grid grid-cols-3 gap-6 mt-2">
-                  {[["16+","Destinations"],["36+","Itineraries"],["15+","Years"]].map(([n,l]) => (
+                  {[["2009","Established"],["18","Destination Guides"],["25","Signature Journeys"]].map(([n,l]) => (
                     <div key={l}>
                       <div className="font-display text-volcanic font-light" style={{fontSize:"clamp(1.75rem,3.5vw,2.5rem)",letterSpacing:"-0.02em"}}>{n}</div>
                       <div className="text-warmgrey font-body mt-1" style={{fontSize:"0.75rem",letterSpacing:"0.12em",textTransform:"uppercase"}}>{l}</div>
