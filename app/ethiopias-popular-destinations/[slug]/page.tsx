@@ -1,403 +1,629 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import PlaceholderImage from "@/components/ui/PlaceholderImage"
-import SchemaScript from "@/components/ui/SchemaScript"
-import { AnimateIn, AnimateStagger } from "@/components/ui/AnimateIn"
-import { destinationSchema, breadcrumbSchema, faqSchema } from "@/lib/schema"
-import { DESTINATIONS, TESTIMONIALS, TOUR_STYLES, SITE } from "@/data/siteData"
-import { DESTINATION_CONTENT } from "@/data/destinationContent"
-import { getItinerary } from "@/data/itineraryData"
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import PlaceholderImage from '@/components/ui/PlaceholderImage'
+import SchemaScript from '@/components/ui/SchemaScript'
+import { AnimateIn, AnimateStagger } from '@/components/ui/AnimateIn'
+import { breadcrumbSchema, destinationSchema, faqSchema } from '@/lib/schema'
+import {
+  getPremiumDestination,
+  PREMIUM_DESTINATIONS,
+  type DestinationProfile,
+} from '@/data/destinationsPremium'
+import { SITE } from '@/data/siteData'
 
-interface Props { params: Promise<{ slug: string }> }
+interface Props {
+  params: Promise<{ slug: string }>
+}
 
 export async function generateStaticParams() {
-  return DESTINATIONS.map(d => ({ slug: d.slug }))
+  return PREMIUM_DESTINATIONS.map((destination) => ({ slug: destination.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const d = DESTINATIONS.find(x => x.slug === slug)
-  if (!d) return {}
+  const destination = getPremiumDestination(slug)
+  if (!destination) return {}
+
+  const canonical = `https://www.sawlatours.com/ethiopias-popular-destinations/${destination.slug}`
+  const image = `https://www.sawlatours.com/images/destinations/${destination.slug}/hero.jpg`
+
   return {
-    title: d.metaTitle,
-    description: d.metaDescription,
-    keywords: [d.primaryKeyword, "Ethiopia tour", d.name, "Sawla Tours", "private Ethiopia"],
-    alternates: { canonical: "https://www.sawlatours.com/ethiopias-popular-destinations/" + slug },
+    title: { absolute: destination.seo.title },
+    description: destination.seo.description,
+    keywords: [
+      destination.seo.primaryKeyword,
+      ...destination.seo.secondaryKeywords,
+      destination.name,
+      'private Ethiopia tours',
+      'Sawla Tours',
+    ],
+    alternates: { canonical },
     openGraph: {
-      title: d.metaTitle,
-      description: d.metaDescription,
-      images: [{ url: d.heroImage, alt: d.heroAlt }],
+      title: destination.seo.title,
+      description: destination.seo.description,
+      url: canonical,
+      type: 'website',
+      images: [{ url: image, alt: destination.image.heroAlt }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: destination.seo.title,
+      description: destination.seo.description,
+      images: [image],
     },
   }
 }
 
-const DIFF_COLORS: Record<string, string> = {
-  Easy:        "text-green-700 bg-green-50 border-green-100",
-  Moderate:    "text-amber-700 bg-amber-50 border-amber-100",
-  Challenging: "text-red-700 bg-red-50 border-red-100",
+const DIFFICULTY_STYLES: Record<string, string> = {
+  Easy: 'text-green-800 bg-green-50 border-green-200',
+  Moderate: 'text-amber-800 bg-amber-50 border-amber-200',
+  Challenging: 'text-orange-800 bg-orange-50 border-orange-200',
+  Extreme: 'text-red-800 bg-red-50 border-red-200',
+}
+
+const STATUS_STYLES = {
+  standard: {
+    label: 'Standard planning checks apply',
+    box: 'bg-green-50 border-green-200',
+    labelClass: 'text-green-800',
+  },
+  check: {
+    label: 'Live access check required',
+    box: 'bg-amber-50 border-amber-200',
+    labelClass: 'text-amber-900',
+  },
+  specialist: {
+    label: 'Specialist / conditional operation',
+    box: 'bg-red-50 border-red-200',
+    labelClass: 'text-red-900',
+  },
+}
+
+function relatedDestinations(destination: DestinationProfile) {
+  return PREMIUM_DESTINATIONS.filter((candidate) => candidate.slug !== destination.slug)
+    .map((candidate) => ({
+      candidate,
+      score:
+        (candidate.zone === destination.zone ? 3 : 0) +
+        candidate.category.filter((category) => destination.category.includes(category)).length,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((item) => item.candidate)
+}
+
+function SectionHeading({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) {
+  return (
+    <div className="mb-8">
+      <span className="label-eyebrow">{eyebrow}</span>
+      <h2
+        id={id}
+        className="heading-display text-volcanic mt-1"
+        style={{ fontSize: 'clamp(1.55rem,3vw,2.35rem)' }}
+      >
+        {title}
+      </h2>
+    </div>
+  )
 }
 
 export default async function DestinationPage({ params }: Props) {
   const { slug } = await params
-  const d = DESTINATIONS.find(x => x.slug === slug)
-  if (!d) notFound()
-  const content = DESTINATION_CONTENT[slug]
-  const testimonial = TESTIMONIALS.find(t => t.useOn.some(u => u.includes(slug.split("-")[0])))
-  const related = DESTINATIONS.filter(x => x.slug !== slug && x.featured).slice(0, 3)
+  const destination = getPremiumDestination(slug)
+  if (!destination) notFound()
+
+  const related = relatedDestinations(destination)
+  const statusStyle = STATUS_STYLES[destination.statusLevel]
+  const canonical = `https://www.sawlatours.com/ethiopias-popular-destinations/${destination.slug}`
+  const heroImage = `https://www.sawlatours.com/images/destinations/${destination.slug}/hero.jpg`
 
   const schemas = [
-    destinationSchema({ name: d.name, url: "https://www.sawlatours.com/ethiopias-popular-destinations/" + slug, description: d.excerpt, image: d.heroImage, region: d.region }),
+    destinationSchema({
+      name: destination.name,
+      url: canonical,
+      description: destination.dek,
+      image: heroImage,
+      region: destination.region,
+    }),
     breadcrumbSchema([
-      { name: "Home", url: "https://www.sawlatours.com" },
-      { name: "Destinations", url: "https://www.sawlatours.com/ethiopias-popular-destinations" },
-      { name: d.name, url: "https://www.sawlatours.com/ethiopias-popular-destinations/" + slug },
+      { name: 'Home', url: 'https://www.sawlatours.com' },
+      {
+        name: 'Ethiopia Destinations',
+        url: 'https://www.sawlatours.com/ethiopias-popular-destinations',
+      },
+      { name: destination.name, url: canonical },
     ]),
-    ...(content?.faqs ? [faqSchema(content.faqs)] : []),
+    faqSchema(destination.faqs),
   ]
 
   return (
     <>
-      {schemas.map((s, i) => <SchemaScript key={i} schema={s} />)}
+      {schemas.map((schema, index) => (
+        <SchemaScript key={index} schema={schema} />
+      ))}
 
-      {/* ── CINEMATIC HERO ── */}
-      <section className="relative h-[75vh] min-h-[560px] overflow-hidden" aria-labelledby="dest-heading">
-        <PlaceholderImage filename={"dest-" + slug + "-hero.jpg"} width={1920} height={1080} category="destination" fill className="object-center" />
-        <div className="image-overlay" style={{ background: "linear-gradient(to top, rgba(42,39,36,0.88) 0%, rgba(42,39,36,0.25) 50%, rgba(42,39,36,0.3) 100%)" }} />
-        <div className="absolute inset-0 flex flex-col justify-end pb-16 md:pb-20">
+      <section className="relative min-h-[640px] h-[78vh] overflow-hidden" aria-labelledby="destination-heading">
+        <PlaceholderImage
+          filename={`dest-${destination.slug}-hero.jpg`}
+          width={1920}
+          height={1080}
+          category="destination"
+          fill
+          label={destination.image.heroAlt}
+          className="object-center"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to top, rgba(35,32,29,0.94) 0%, rgba(35,32,29,0.38) 55%, rgba(35,32,29,0.36) 100%)',
+          }}
+        />
+        <div className="absolute inset-0 flex flex-col justify-end pb-14 md:pb-20">
           <div className="container-max text-ivory">
             <AnimateIn>
               <nav aria-label="Breadcrumb" className="mb-5">
-                <ol className="flex flex-wrap items-center gap-2 font-body" style={{fontSize:"11.5px",letterSpacing:"0.1em",textTransform:"uppercase"}}>
-                  <li><Link href="/" className="text-ivory/50 hover:text-gold transition-colors cursor-pointer">Home</Link></li>
-                  <li className="text-ivory/30">&#47;</li>
-                  <li><Link href="/ethiopias-popular-destinations" className="text-ivory/50 hover:text-gold transition-colors cursor-pointer">Destinations</Link></li>
-                  <li className="text-ivory/30">&#47;</li>
-                  <li className="text-ivory/80">{d.name}</li>
+                <ol
+                  className="flex flex-wrap items-center gap-2 font-body"
+                  style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}
+                >
+                  <li>
+                    <Link href="/" className="text-ivory/50 hover:text-gold transition-colors">
+                      Home
+                    </Link>
+                  </li>
+                  <li className="text-ivory/30">/</li>
+                  <li>
+                    <Link
+                      href="/ethiopias-popular-destinations"
+                      className="text-ivory/50 hover:text-gold transition-colors"
+                    >
+                      Destinations
+                    </Link>
+                  </li>
+                  <li className="text-ivory/30">/</li>
+                  <li className="text-ivory/80">{destination.shortName}</li>
                 </ol>
               </nav>
-              <span className="label-eyebrow text-gold">{d.region}</span>
-              <h1 id="dest-heading" className="heading-display text-ivory mt-2" style={{fontSize:"clamp(2.5rem,6vw,5.5rem)"}}>{d.name}</h1>
-              <p className="text-ivory/75 font-body mt-4 max-w-2xl leading-relaxed" style={{fontSize:"clamp(1rem,1.25vw,1.2rem)"}}>{d.tagline}</p>
-              {/* At-a-glance pills */}
-              <div className="flex flex-wrap gap-3 mt-6">
-                <span className={"border rounded-full px-4 py-1.5 font-body font-medium " + (DIFF_COLORS[d.difficulty] ?? "")} style={{fontSize:"12px"}}>{d.difficulty}</span>
-                <span className="border border-white/30 text-ivory/80 rounded-full px-4 py-1.5 font-body" style={{fontSize:"12px"}}>{d.duration}</span>
-                <span className="border border-white/30 text-ivory/80 rounded-full px-4 py-1.5 font-body" style={{fontSize:"12px"}}>{d.bestTime}</span>
-                {content?.altitude && <span className="border border-white/30 text-ivory/80 rounded-full px-4 py-1.5 font-body" style={{fontSize:"12px"}}>{content.altitude}</span>}
+              <span className="label-eyebrow text-gold">{destination.region}</span>
+              <h1
+                id="destination-heading"
+                className="heading-display text-ivory mt-2 max-w-5xl"
+                style={{ fontSize: 'clamp(2.6rem,6vw,5.6rem)' }}
+              >
+                {destination.name}
+              </h1>
+              <p
+                className="text-ivory/78 font-body mt-4 max-w-3xl leading-relaxed"
+                style={{ fontSize: 'clamp(1rem,1.3vw,1.2rem)' }}
+              >
+                {destination.tagline}
+              </p>
+              <div className="flex flex-wrap gap-3 mt-7">
+                <span
+                  className={`border rounded-full px-4 py-1.5 font-body font-medium text-xs ${DIFFICULTY_STYLES[destination.difficulty] ?? ''}`}
+                >
+                  {destination.difficulty}
+                </span>
+                <span className="border border-white/30 text-ivory/85 rounded-full px-4 py-1.5 font-body text-xs">
+                  {destination.idealStay}
+                </span>
+                <span className="border border-white/30 text-ivory/85 rounded-full px-4 py-1.5 font-body text-xs">
+                  {destination.bestTime}
+                </span>
+                <span className="border border-white/30 text-ivory/85 rounded-full px-4 py-1.5 font-body text-xs">
+                  {destination.altitude}
+                </span>
               </div>
             </AnimateIn>
           </div>
         </div>
       </section>
 
-      {/* ── MAIN CONTENT GRID ── */}
-      <section className="section-padding bg-ivory">
-        <div className="container-max">
-          <div className="grid lg:grid-cols-3 gap-12 lg:gap-16">
-
-            {/* ── LEFT: Article content ── */}
-            <div className="lg:col-span-2">
-              {content?.intro && (
-                <AnimateIn>
-                  <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"clamp(1.125rem,1.5vw,1.25rem)",marginBottom:"2.5rem"}}>{content.intro}</p>
-                </AnimateIn>
-              )}
-
-              {/* Body sections */}
-              {content?.sections?.map((section, i) => (
-                <AnimateIn key={i} delay={i * 0.08} className="mb-10">
-                  {section.heading && (
-                    <h2 className="font-display text-volcanic font-normal mb-4" style={{fontSize:"clamp(1.375rem,2.5vw,1.875rem)"}}>{section.heading}</h2>
-                  )}
-                  <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>{section.body}</p>
-                </AnimateIn>
-              ))}
-
-              {/* Key Highlights */}
-              {d.highlights?.length > 0 && (
-                <AnimateIn className="mt-10">
-                  <h2 className="font-display text-volcanic font-normal mb-6" style={{fontSize:"clamp(1.375rem,2.5vw,1.875rem)"}}>
-                    Key Highlights
-                  </h2>
-                  <ul className="space-y-3">
-                    {d.highlights.map((h, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <svg className="text-gold flex-shrink-0 mt-1" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l4 4 6-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        <span className="text-warmgrey font-body" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>{h}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </AnimateIn>
-              )}
-
-              {/* Getting There + Best Time */}
-              {content?.gettingThere && (
-                <AnimateIn className="mt-10 grid sm:grid-cols-2 gap-6">
-                  <div className="p-6 bg-gold-faint rounded-card border border-gold/20">
-                    <div className="font-body font-medium text-volcanic mb-2" style={{fontSize:"11px",letterSpacing:"0.12em",textTransform:"uppercase"}}>Getting There</div>
-                    <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"0.9375rem"}}>{content.gettingThere}</p>
-                  </div>
-                  <div className="p-6 bg-gold-faint rounded-card border border-gold/20">
-                    <div className="font-body font-medium text-volcanic mb-2" style={{fontSize:"11px",letterSpacing:"0.12em",textTransform:"uppercase"}}>Best Time to Visit</div>
-                    <p className="text-warmgrey font-body leading-relaxed" style={{fontSize:"0.9375rem"}}>{content.bestTimeDetail}</p>
-                  </div>
-                </AnimateIn>
-              )}
-
-              {/* Entry Notes */}
-              {content?.entryNotes && (
-                <AnimateIn className="mt-6 p-5 bg-sand/30 rounded-card border border-sand">
-                  <div className="font-body font-medium text-volcanic mb-1.5" style={{fontSize:"11px",letterSpacing:"0.12em",textTransform:"uppercase"}}>Practical Notes</div>
-                  <p className="text-warmgrey font-body" style={{fontSize:"0.9375rem"}}>{content.entryNotes}</p>
-                </AnimateIn>
-              )}
-            </div>
-
-            {/* ── RIGHT: Sticky sidebar ── */}
-            <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-5">
-
-                {/* Enquiry CTA */}
-                <div className="bg-volcanic rounded-card p-7 text-ivory">
-                  <div className="label-eyebrow text-gold mb-4">Plan a Visit</div>
-                  <h3 className="font-display text-ivory font-light mb-3" style={{fontSize:"clamp(1.25rem,2vw,1.625rem)"}}>Add {d.name} to Your Itinerary</h3>
-                  <p className="text-ivory/60 font-body leading-relaxed mb-6" style={{fontSize:"0.9375rem"}}>Tell us your travel dates and interests. Our Ethiopia specialists will design a private itinerary that includes {d.name} at the right pace for you.</p>
-                  <Link href="/enquire" className="btn-gold w-full justify-center mb-3">Start Planning</Link>
-                  <a href={SITE.whatsapp} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-2.5 border border-white/20 rounded-sm text-ivory/70 hover:border-[#25D366] hover:text-[#25D366] transition-colors font-body cursor-pointer"
-                    style={{fontSize:"12.5px",letterSpacing:"0.08em",textTransform:"uppercase"}}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    WhatsApp
-                  </a>
-                </div>
-
-                {/* Quick facts */}
-                <div className="border border-sand rounded-card p-5">
-                  <div className="label-eyebrow mb-4">At a Glance</div>
-                  <dl className="space-y-3">
-                    {[{l:"Region",v:d.region},{l:"Best Time",v:d.bestTime},{l:"Duration",v:d.duration},{l:"Difficulty",v:d.difficulty}].map(item=>(
-                      <div key={item.l} className="flex justify-between text-sm">
-                        <dt className="text-warmgrey font-body">{item.l}</dt>
-                        <dd className="font-body font-medium text-volcanic text-right">{item.v}</dd>
-                      </div>
-                    ))}
-                    {content?.altitude && <div className="flex justify-between text-sm"><dt className="text-warmgrey font-body">Altitude</dt><dd className="font-body font-medium text-volcanic text-right">{content.altitude}</dd></div>}
-                  </dl>
-                </div>
-
-                {/* Related tour styles */}
-                <div className="border border-sand rounded-card p-5">
-                  <div className="label-eyebrow mb-4">Tour Styles for {d.name}</div>
-                  <div className="space-y-2">
-                    {TOUR_STYLES.slice(0, 3).map(ts => (
-                      <Link key={ts.slug} href={"/tours-by-experience/" + ts.slug}
-                        className="flex items-center justify-between text-sm group cursor-pointer">
-                        <span className="text-warmgrey group-hover:text-gold transition-colors font-body">{ts.name}</span>
-                        <svg className="text-gold/60 group-hover:text-gold group-hover:translate-x-0.5 transition-all" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </aside>
-          </div>
+      <section className="bg-ivory border-b border-sand/60">
+        <div className="container-max py-6 overflow-x-auto">
+          <nav aria-label="On this page" className="flex gap-6 min-w-max font-body text-xs">
+            {[
+              ['overview', 'Overview'],
+              ['attractions', 'Attractions'],
+              ['things-to-do', 'Things to Do'],
+              ['how-long', 'How Long'],
+              ['getting-there', 'Getting There'],
+              ['best-time', 'Best Time'],
+              ['difficulty', 'Difficulty'],
+              ['responsible-travel', 'Travel Responsibly'],
+              ['faqs', 'FAQs'],
+            ].map(([anchor, label]) => (
+              <a key={anchor} href={`#${anchor}`} className="text-warmgrey hover:text-gold transition-colors">
+                {label}
+              </a>
+            ))}
+          </nav>
         </div>
       </section>
 
-      {/* ── IMAGE GALLERY (placeholder) ── */}
-      <section className="bg-volcanic py-16">
+      <section className="section-padding bg-ivory" id="overview">
+        <div className="container-max grid lg:grid-cols-[minmax(0,1fr)_340px] gap-12 lg:gap-16 items-start">
+          <main className="min-w-0">
+            <AnimateIn>
+              <span className="label-eyebrow">Destination Overview</span>
+              <p
+                className="font-display text-volcanic font-light leading-relaxed mt-3"
+                style={{ fontSize: 'clamp(1.35rem,2.7vw,2.1rem)' }}
+              >
+                {destination.dek}
+              </p>
+              <div className="mt-8 space-y-5">
+                {destination.overview.map((paragraph) => (
+                  <p key={paragraph.slice(0, 60)} className="font-body text-warmgrey leading-relaxed text-[15px] md:text-base">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </AnimateIn>
+
+            <AnimateIn delay={0.08} className={`mt-10 border rounded-card p-6 ${statusStyle.box}`}>
+              <div className={`label-eyebrow ${statusStyle.labelClass}`}>{statusStyle.label}</div>
+              <p className="font-body text-volcanic/80 leading-relaxed mt-2 text-sm">{destination.status}</p>
+            </AnimateIn>
+          </main>
+
+          <aside className="lg:sticky lg:top-28 space-y-5">
+            <div className="border border-sand rounded-card p-6 bg-white">
+              <div className="label-eyebrow mb-5">At a Glance</div>
+              <dl className="space-y-4">
+                {destination.facts.map((fact) => (
+                  <div key={fact.label} className="border-b border-sand/70 pb-3 last:border-0 last:pb-0">
+                    <dt className="font-body text-warmgrey text-[11px] uppercase tracking-[0.12em]">{fact.label}</dt>
+                    <dd className="font-body font-medium text-volcanic text-sm mt-1">{fact.value}</dd>
+                    {fact.note && <dd className="font-body text-warmgrey text-xs mt-1 leading-relaxed">{fact.note}</dd>}
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <div className="bg-volcanic text-ivory rounded-card p-6">
+              <div className="label-eyebrow text-gold">Plan With a Local Specialist</div>
+              <p className="font-body text-ivory/70 text-sm leading-relaxed mt-3">
+                Tell us your dates, fitness, comfort level and interests. We will confirm current access and build this destination into a realistic private route.
+              </p>
+              <div className="space-y-3 mt-5">
+                <Link href="/enquire" className="btn-primary w-full text-center block">
+                  Design My Journey
+                </Link>
+                <a
+                  href={SITE.whatsapp}
+                  className="block text-center border border-white/20 rounded-full py-3 font-body text-sm text-ivory hover:border-gold hover:text-gold transition-colors"
+                >
+                  Ask on WhatsApp
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="section-padding-sm bg-gold-faint border-y border-sand/60" id="attractions">
+        <div className="container-max">
+          <AnimateIn>
+            <SectionHeading eyebrow="What to See" title={`Major Attractions in ${destination.shortName}`} />
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-2 gap-5" staggerDelay={0.06}>
+            {destination.attractions.map((attraction, index) => (
+              <article key={attraction.title} className="bg-white border border-sand rounded-card p-6 md:p-7">
+                <div className="text-gold font-body text-xs tracking-[0.14em] mb-3">{String(index + 1).padStart(2, '0')}</div>
+                <h3 className="font-display text-volcanic text-xl md:text-2xl font-light">{attraction.title}</h3>
+                <p className="font-body text-warmgrey text-sm leading-relaxed mt-3">{attraction.body}</p>
+              </article>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      <section className="section-padding bg-ivory" id="things-to-do">
+        <div className="container-max">
+          <AnimateIn>
+            <SectionHeading eyebrow="Experiences" title={`Best Things to Do in ${destination.shortName}`} />
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.06}>
+            {destination.experiences.map((experience) => (
+              <article key={experience.title} className="border border-sand rounded-card p-6 bg-white h-full">
+                <div className="w-8 h-px bg-gold mb-5" aria-hidden="true" />
+                <h3 className="font-display text-volcanic text-xl font-light">{experience.title}</h3>
+                <p className="font-body text-warmgrey text-sm leading-relaxed mt-3">{experience.body}</p>
+              </article>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      <section className="bg-volcanic py-16" aria-label={`${destination.shortName} image gallery`}>
         <div className="container-max">
           <AnimateIn className="mb-8">
-            <span className="label-eyebrow text-gold">Gallery</span>
-            <h2 className="heading-display text-ivory mt-1" style={{fontSize:"clamp(1.5rem,3vw,2.25rem)"}}>From the Field</h2>
+            <span className="label-eyebrow text-gold">From the Field</span>
+            <h2 className="heading-display text-ivory mt-1 text-3xl">A Visual Brief for the Final Photography Library</h2>
           </AnimateIn>
-          <AnimateStagger className="grid grid-cols-2 md:grid-cols-4 gap-3" staggerDelay={0.06}>
-            {[1,2,3,4].map(i => (
-              <div key={i} className={"relative overflow-hidden rounded-[12px] " + (i===1?"col-span-2 row-span-2 aspect-square":"aspect-[4/3]")}>
-                <PlaceholderImage filename={"dest-" + slug + "-gallery-" + i + ".jpg"} width={i===1?800:400} height={i===1?800:300} category="destination" fill className="hover:scale-105 transition-transform duration-700" />
+          <AnimateStagger className="grid grid-cols-2 md:grid-cols-4 gap-3" staggerDelay={0.05}>
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className={`relative overflow-hidden rounded-[12px] ${item === 1 ? 'col-span-2 row-span-2 aspect-square' : 'aspect-[4/3]'}`}
+              >
+                <PlaceholderImage
+                  filename={`dest-${destination.slug}-gallery-${item}.jpg`}
+                  width={item === 1 ? 900 : 500}
+                  height={item === 1 ? 900 : 375}
+                  category="destination"
+                  fill
+                  label={`${destination.shortName} editorial gallery image ${item}`}
+                  className="hover:scale-105 transition-transform duration-700"
+                />
               </div>
             ))}
           </AnimateStagger>
         </div>
       </section>
 
-      {/* ── TESTIMONIAL ── */}
-      {testimonial && (
-        <section className="bg-gold-faint/50 py-16 border-t border-sand/60">
-          <div className="container-max max-w-3xl mx-auto text-center">
-            <AnimateIn>
-              <div className="flex gap-1 justify-center mb-6">
-                {[1,2,3,4,5].map(i=>(<svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#c9941a" aria-hidden="true"><path d="M7 1l1.68 3.4 3.75.55-2.71 2.64.64 3.73L7 9.77 3.64 11.32l.64-3.73L1.57 4.95l3.75-.55L7 1z"/></svg>))}
-              </div>
-              <blockquote className="font-display text-volcanic italic font-light leading-relaxed" style={{fontSize:"clamp(1.125rem,2.5vw,1.625rem)"}}>
-                &ldquo;{testimonial.fullQuote}&rdquo;
-              </blockquote>
-              <footer className="flex items-center justify-center gap-3 mt-6">
-                <div className="w-9 h-9 rounded-full bg-sand/70 flex items-center justify-center text-coffee text-sm font-body font-medium flex-shrink-0">{testimonial.initials}</div>
-                <div className="text-left">
-                  <div className="font-body font-medium text-volcanic" style={{fontSize:"13.5px"}}>{testimonial.name} {testimonial.countryFlag}</div>
-                  <div className="text-warmgrey font-body" style={{fontSize:"12px"}}>{testimonial.tripType}</div>
-                </div>
-              </footer>
-            </AnimateIn>
-          </div>
-        </section>
-      )}
-
-      {/* ── FAQ ── */}
-      {content?.faqs && content.faqs.length > 0 && (
-        <section className="section-padding-sm bg-ivory border-t border-sand/60">
-          <div className="container-max max-w-3xl mx-auto">
-            <AnimateIn className="mb-10">
-              <span className="label-eyebrow">Questions</span>
-              <h2 className="heading-display text-volcanic mt-1" style={{fontSize:"clamp(1.5rem,3vw,2.25rem)"}}>{d.name} — Common Questions</h2>
-            </AnimateIn>
-            <AnimateStagger className="space-y-3" staggerDelay={0.07}>
-              {content.faqs.map(faq => (
-                <div key={faq.q}>
-                  <details className="border border-sand rounded-card group">
-                    <summary className="flex items-center justify-between p-5 cursor-pointer list-none font-body font-medium text-volcanic hover:text-gold transition-colors" style={{fontSize:"13.5px"}}>
-                      <span>{faq.q}</span>
-                      <span className="ml-4 text-gold text-xl leading-none group-open:rotate-45 transition-transform duration-200 flex-shrink-0">+</span>
-                    </summary>
-                    <div className="px-5 pb-5 text-warmgrey font-body leading-relaxed" style={{fontSize:"13.5px"}}>{faq.a}</div>
-                  </details>
+      <section className="section-padding bg-ivory" id="how-long">
+        <div className="container-max grid lg:grid-cols-[0.45fr_0.55fr] gap-12 lg:gap-16">
+          <AnimateIn>
+            <SectionHeading eyebrow="Time Well Spent" title={`How Many Days in ${destination.shortName}?`} />
+            <div className="space-y-5">
+              {[
+                ['Minimum', destination.stay.minimum],
+                ['Ideal', destination.stay.ideal],
+                ['Extended', destination.stay.extended],
+              ].map(([label, value]) => (
+                <div key={label} className="border-l-2 border-gold pl-5">
+                  <h3 className="font-body font-medium text-volcanic text-sm">{label}</h3>
+                  <p className="font-body text-warmgrey text-sm leading-relaxed mt-1">{value}</p>
                 </div>
               ))}
-            </AnimateStagger>
-          </div>
-        </section>
-      )}
-
-      {/* ── RECOMMENDED ITINERARIES ── */}
-      {(() => {
-        // Pick 3 relevant itineraries based on destination name match or featured styles
-        // destKey available via slug
-        const candidates = [
-          "classic-northern-ethiopia-10-days",
-          "lalibela-gondar-tigray-14-days",
-          "omo-valley-complete-10-days",
-          "bale-simien-wolf-gelada-12-days",
-          "danakil-north-circuit-9-days",
-          "timkat-ethiopia-7-days",
-          "photography-complete-expedition-14-days",
-          "simien-mountains-trekking-7-days",
-          "ethiopia-birding-specialist-14-days",
-        ]
-        const styles = [
-          "historic-and-cultural-tours",
-          "historic-and-cultural-tours",
-          "tribal-cultural-ethiopia-tours",
-          "ethiopia-wildlife-tours",
-          "ethiopia-adventure-tours",
-          "ethiopia-festival-tours",
-          "ethiopia-photography-tours",
-          "ethiopia-adventure-tours",
-          "ethiopia-wildlife-tours",
-        ]
-        // Filter out slugs with no data
-        const itins = candidates
-          .map((s, i) => ({ itin: getItinerary(s), style: styles[i], slug: s }))
-          .filter(x => x.itin !== undefined)
-          .slice(0, 3)
-        if (itins.length === 0) return null
-        return (
-          <section className="section-padding-sm bg-ivory border-t border-sand/60" aria-labelledby="rec-itins-heading">
-            <div className="container-max">
-              <AnimateIn className="mb-10">
-                <span className="label-eyebrow">Suggested Itineraries</span>
-                <h2 id="rec-itins-heading" className="heading-display text-volcanic mt-1" style={{ fontSize: "clamp(1.375rem,2.5vw,2rem)" }}>
-                  Private Journeys That Include {d.name}
-                </h2>
-              </AnimateIn>
-              <AnimateStagger className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
-                {itins.map(({ itin, style: s, slug: iSlug }) => (
-                  itin && (
-                    <div key={iSlug}>
-                      <Link href={"/tours-by-experience/" + s + "/" + iSlug}
-                        className="group block bg-white border border-sand rounded-card overflow-hidden card-hover">
-                        <div className="relative aspect-[16/10] overflow-hidden">
-                          <PlaceholderImage filename={"tour-" + iSlug + "-hero.jpg"} width={600} height={375} category="tour" fill className="group-hover:scale-105 transition-transform duration-700" />
-                          <div className="image-overlay-light" />
-                        </div>
-                        <div className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-warmgrey font-body" style={{ fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}>{itin.durationLabel}</span>
-                            <span className="text-sand">·</span>
-                            <span className="text-warmgrey font-body" style={{ fontSize: "11px" }}>{itin.difficulty}</span>
-                          </div>
-                          <h3 className="font-display text-volcanic font-normal leading-snug group-hover:text-gold transition-colors" style={{ fontSize: "clamp(1rem,1.5vw,1.1875rem)" }}>
-                            {itin.name}
-                          </h3>
-                          {itin.priceFrom && (
-                            <div className="text-gold font-body font-medium mt-1.5" style={{ fontSize: "12.5px" }}>{itin.priceFrom}</div>
-                          )}
-                        </div>
-                      </Link>
-                    </div>
-                  )
-                ))}
-              </AnimateStagger>
-              <AnimateIn delay={0.2} className="text-center mt-8">
-                <Link href="/tours-by-experience" className="btn-ghost">View All 36 Itineraries</Link>
-              </AnimateIn>
             </div>
-          </section>
-        )
-      })()}
-
-      {/* ── RELATED DESTINATIONS ── */}
-      <section className="section-padding bg-volcanic" aria-labelledby="related-heading">
-        <div className="container-max">
-          <AnimateIn className="mb-10">
-            <span className="label-eyebrow text-gold">Continue Exploring</span>
-            <h2 id="related-heading" className="heading-display text-ivory mt-1" style={{fontSize:"clamp(1.5rem,3vw,2.25rem)"}}>
-              Other Ethiopia Destinations
-            </h2>
           </AnimateIn>
-          <AnimateStagger className="grid grid-cols-1 md:grid-cols-3 gap-5" staggerDelay={0.08}>
-            {related.map(r => (
-              <div key={r.slug}>
-                <Link href={"/ethiopias-popular-destinations/" + r.slug}
-                  className="group relative overflow-hidden rounded-card block card-hover">
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <PlaceholderImage filename={"dest-" + r.slug + "-hero.jpg"} width={600} height={450} category="destination" fill className="group-hover:scale-105 transition-transform duration-700" />
-                    <div className="image-overlay" />
-                    <div className="absolute inset-0 flex flex-col justify-end p-5">
-                      <span className="label-eyebrow text-gold" style={{fontSize:"10px"}}>{r.region}</span>
-                      <h3 className="font-display text-ivory font-light" style={{fontSize:"clamp(1.25rem,2vw,1.5rem)"}}>{r.name}</h3>
-                      <p className="text-ivory/65 font-body mt-1" style={{fontSize:"12.5px"}}>{r.tagline}</p>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </AnimateStagger>
-          <AnimateIn delay={0.2} className="text-center mt-10">
-            <Link href="/ethiopias-popular-destinations" className="btn-ghost-light">All 16 Destinations</Link>
+          <AnimateIn delay={0.08}>
+            <div className="border border-sand rounded-card p-6 md:p-8 bg-gold-faint">
+              <div className="label-eyebrow mb-5">Suggested Pacing</div>
+              <ol className="space-y-4">
+                {destination.stay.pacing.map((item, index) => (
+                  <li key={item} className="flex gap-4">
+                    <span className="w-7 h-7 flex-shrink-0 rounded-full bg-gold text-white font-body text-xs flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <span className="font-body text-volcanic/80 text-sm leading-relaxed pt-1">{item}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </AnimateIn>
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section className="relative py-24 text-center overflow-hidden">
-        <div className="absolute inset-0" aria-hidden="true">
-          <PlaceholderImage filename={"dest-" + slug + "-cta.jpg"} width={1920} height={600} category="destination" fill />
-          <div className="absolute inset-0 bg-volcanic/72" />
-        </div>
-        <div className="relative z-10 container-max">
+      <section className="section-padding-sm bg-gold-faint border-y border-sand/60" id="getting-there">
+        <div className="container-max">
           <AnimateIn>
-            <span className="label-eyebrow text-gold">Ready to Visit?</span>
-            <h2 className="heading-display text-ivory mt-4 mb-6 max-w-2xl mx-auto" style={{fontSize:"clamp(1.75rem,4vw,3rem)"}}>
-              Plan Your Private {d.name} Journey
+            <SectionHeading eyebrow="Access & Logistics" title={`How to Get to ${destination.shortName}`} />
+            <p className="font-body text-warmgrey leading-relaxed max-w-4xl">{destination.access.overview}</p>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-5 mt-8" staggerDelay={0.07}>
+            {[
+              ['By Air', destination.access.air],
+              ['By Road', destination.access.road],
+              ['On the Ground', destination.access.local],
+            ].map(([title, body]) => (
+              <article key={title} className="bg-white border border-sand rounded-card p-6">
+                <h3 className="font-display text-volcanic text-xl">{title}</h3>
+                <p className="font-body text-warmgrey text-sm leading-relaxed mt-3">{body}</p>
+              </article>
+            ))}
+          </AnimateStagger>
+          <div className="grid sm:grid-cols-3 gap-3 mt-6">
+            {[
+              ['Gateway', destination.gateway],
+              ['From Addis Ababa', destination.fromAddis],
+              ['Typical Stay', destination.idealStay],
+            ].map(([label, value]) => (
+              <div key={label} className="border border-sand rounded-card bg-ivory p-4">
+                <div className="font-body text-[10px] uppercase tracking-[0.14em] text-warmgrey">{label}</div>
+                <div className="font-body font-medium text-volcanic text-sm mt-1">{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-padding bg-ivory" id="best-time">
+        <div className="container-max">
+          <AnimateIn>
+            <SectionHeading eyebrow="Seasonality" title={`Best Time to Visit ${destination.shortName}`} />
+          </AnimateIn>
+          <div className="overflow-x-auto border border-sand rounded-card bg-white">
+            <table className="w-full min-w-[760px] text-left">
+              <thead className="bg-volcanic text-ivory">
+                <tr>
+                  {['Period', 'Typical Conditions', 'Best For', 'Planning Note'].map((heading) => (
+                    <th key={heading} className="font-body font-medium text-xs uppercase tracking-[0.1em] px-5 py-4">
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {destination.seasons.map((season) => (
+                  <tr key={season.period} className="border-t border-sand/70 align-top">
+                    <td className="font-body font-medium text-volcanic text-sm px-5 py-5">{season.period}</td>
+                    <td className="font-body text-warmgrey text-sm leading-relaxed px-5 py-5">{season.conditions}</td>
+                    <td className="font-body text-warmgrey text-sm leading-relaxed px-5 py-5">{season.bestFor}</td>
+                    <td className="font-body text-warmgrey text-sm leading-relaxed px-5 py-5">{season.note ?? 'Conditions vary year to year.'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-padding-sm bg-volcanic text-ivory" id="difficulty">
+        <div className="container-max">
+          <AnimateIn>
+            <span className="label-eyebrow text-gold">Fitness & Comfort</span>
+            <h2 className="heading-display mt-1 text-ivory" style={{ fontSize: 'clamp(1.55rem,3vw,2.35rem)' }}>
+              Destination Difficulty: {destination.difficulty}
             </h2>
-            <p className="text-ivory/70 font-body max-w-lg mx-auto mb-8 leading-relaxed" style={{fontSize:"clamp(1rem,1.25vw,1.125rem)"}}>
-              Tell us your travel dates and what you want from {d.name}. Our Ethiopia specialists will design the right itinerary.
+            <p className="font-body text-ivory/70 leading-relaxed max-w-4xl mt-4">{destination.challenge.summary}</p>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-5 mt-8" staggerDelay={0.07}>
+            {[
+              ['Terrain', destination.challenge.terrain],
+              ['Climate & Altitude', destination.challenge.climate],
+              ['Accessibility', destination.challenge.accessibility],
+            ].map(([title, body]) => (
+              <div key={title} className="border border-white/12 rounded-card p-6 bg-white/5">
+                <h3 className="font-display text-gold text-xl">{title}</h3>
+                <p className="font-body text-ivory/65 text-sm leading-relaxed mt-3">{body}</p>
+              </div>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      <section className="section-padding bg-ivory" id="responsible-travel">
+        <div className="container-max grid lg:grid-cols-2 gap-12 lg:gap-16">
+          <AnimateIn>
+            <SectionHeading eyebrow="Before You Go" title="Practical Travel Notes" />
+            <ul className="space-y-3">
+              {destination.practical.map((item) => (
+                <li key={item} className="flex gap-3 font-body text-warmgrey text-sm leading-relaxed">
+                  <span className="text-gold mt-1" aria-hidden="true">●</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </AnimateIn>
+          <AnimateIn delay={0.08}>
+            <div className="bg-gold-faint border border-sand rounded-card p-7 md:p-8">
+              <SectionHeading eyebrow="Travel With Respect" title={`Responsible Travel in ${destination.shortName}`} />
+              <ul className="space-y-3">
+                {destination.responsible.map((item) => (
+                  <li key={item} className="flex gap-3 font-body text-volcanic/75 text-sm leading-relaxed">
+                    <span className="text-gold mt-1" aria-hidden="true">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </AnimateIn>
+        </div>
+      </section>
+
+      <section className="section-padding-sm bg-gold-faint border-y border-sand/60">
+        <div className="container-max">
+          <AnimateIn>
+            <SectionHeading eyebrow="Route Design" title={`Best Places to Combine With ${destination.shortName}`} />
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-5" staggerDelay={0.07}>
+            {destination.combinations.map((combination) => (
+              <article key={combination.title} className="bg-white border border-sand rounded-card p-6">
+                <h3 className="font-display text-volcanic text-xl">{combination.title}</h3>
+                <p className="font-body text-warmgrey text-sm leading-relaxed mt-3">{combination.body}</p>
+              </article>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      <section className="section-padding bg-ivory" id="faqs">
+        <div className="container-max max-w-4xl">
+          <AnimateIn className="text-center mb-10">
+            <span className="label-eyebrow">Planning Questions</span>
+            <h2 className="heading-display text-volcanic mt-1" style={{ fontSize: 'clamp(1.55rem,3vw,2.35rem)' }}>
+              {destination.shortName} FAQs
+            </h2>
+          </AnimateIn>
+          <div className="space-y-3">
+            {destination.faqs.map((faq) => (
+              <details key={faq.q} className="border border-sand rounded-card bg-white group">
+                <summary className="flex items-center justify-between p-5 cursor-pointer list-none font-body font-medium text-volcanic hover:text-gold transition-colors text-sm">
+                  <span>{faq.q}</span>
+                  <span className="ml-4 text-gold text-xl leading-none group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <p className="px-5 pb-5 text-warmgrey font-body leading-relaxed text-sm">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-padding-sm bg-volcanic" aria-labelledby="related-heading">
+        <div className="container-max">
+          <AnimateIn className="mb-9">
+            <span className="label-eyebrow text-gold">Continue Exploring</span>
+            <h2 id="related-heading" className="heading-display text-ivory mt-1 text-3xl">
+              Related Ethiopia Destinations
+            </h2>
+          </AnimateIn>
+          <AnimateStagger className="grid md:grid-cols-3 gap-5" staggerDelay={0.07}>
+            {related.map((item) => (
+              <Link
+                key={item.slug}
+                href={`/ethiopias-popular-destinations/${item.slug}`}
+                className="group block border border-white/10 rounded-card overflow-hidden hover:border-gold/50 transition-colors"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <PlaceholderImage
+                    filename={`dest-${item.slug}-related.jpg`}
+                    width={640}
+                    height={400}
+                    category="destination"
+                    fill
+                    label={item.image.cardAlt}
+                    className="group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="image-overlay-light" />
+                </div>
+                <div className="p-5">
+                  <div className="label-eyebrow text-gold text-[10px]">{item.region}</div>
+                  <h3 className="font-display text-ivory group-hover:text-gold transition-colors text-xl mt-1">
+                    {item.shortName}
+                  </h3>
+                  <p className="font-body text-ivory/55 text-xs mt-2 leading-relaxed">{item.tagline}</p>
+                </div>
+              </Link>
+            ))}
+          </AnimateStagger>
+        </div>
+      </section>
+
+      <section className="relative py-20 md:py-24 overflow-hidden">
+        <PlaceholderImage
+          filename={`dest-${destination.slug}-cta.jpg`}
+          width={1920}
+          height={720}
+          category="destination"
+          fill
+          label={`Private ${destination.shortName} journey planning`}
+        />
+        <div className="absolute inset-0 bg-volcanic/84" />
+        <div className="relative z-10 container-max text-center max-w-3xl mx-auto">
+          <AnimateIn>
+            <span className="label-eyebrow text-gold">Designed Around You</span>
+            <h2 className="heading-display text-ivory mt-2" style={{ fontSize: 'clamp(2rem,4.5vw,3.5rem)' }}>
+              Include {destination.shortName} in a Private Ethiopia Journey
+            </h2>
+            <p className="text-ivory/70 font-body leading-relaxed mt-5">
+              We will match the destination to your dates, fitness, interests and comfort—then verify the flights, roads, permits, guides and current local conditions before the journey is confirmed.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/enquire" className="btn-gold py-4 px-10">Start Planning</Link>
-              <Link href="/ethiopias-popular-destinations" className="btn-ghost-light">More Destinations</Link>
+            <div className="flex flex-wrap justify-center gap-3 mt-8">
+              <Link href="/enquire" className="btn-primary">
+                Start Planning
+              </Link>
+              <Link
+                href="/ethiopias-popular-destinations"
+                className="btn-secondary border-white/30 text-ivory hover:bg-white/10"
+              >
+                Explore All Destinations
+              </Link>
             </div>
           </AnimateIn>
         </div>

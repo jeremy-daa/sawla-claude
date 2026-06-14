@@ -5,8 +5,42 @@ import PlaceholderImage from "@/components/ui/PlaceholderImage"
 import SchemaScript from "@/components/ui/SchemaScript"
 import { AnimateIn, AnimateStagger } from "@/components/ui/AnimateIn"
 import { breadcrumbSchema, faqSchema } from "@/lib/schema"
-import { SPECIES, SITE } from "@/data/siteData"
+import { SPECIES, MOMENTS_ARTICLES, SITE } from "@/data/siteData"
+import { FIELD_GUIDE_CONTENT } from "@/data/fieldGuideContent"
 import { getSpeciesContent } from "@/data/speciesContent"
+import { getItinerary } from "@/data/itineraryData"
+
+// ── Per-species interlinking maps ─────────────────────────────────────────────
+
+const SPECIES_ITINS: Record<string, { slug: string; style: string }[]> = {
+  "ethiopian-wolf":       [{ slug:"bale-simien-wolf-gelada-12-days", style:"ethiopia-wildlife-tours" }, { slug:"bale-mountains-wildlife-5-days", style:"ethiopia-wildlife-tours" }, { slug:"endemic-mammals-circuit-15-days", style:"ethiopia-wildlife-tours" }],
+  "gelada-monkey":        [{ slug:"bale-simien-wolf-gelada-12-days", style:"ethiopia-wildlife-tours" }, { slug:"simien-trekking-wildlife-8-days", style:"ethiopia-wildlife-tours" }, { slug:"endemic-mammals-circuit-15-days", style:"ethiopia-wildlife-tours" }],
+  "walia-ibex":           [{ slug:"simien-trekking-wildlife-8-days",  style:"ethiopia-wildlife-tours" }, { slug:"bale-simien-wolf-gelada-12-days", style:"ethiopia-wildlife-tours" }],
+  "mountain-nyala":       [{ slug:"bale-mountains-wildlife-5-days",   style:"ethiopia-wildlife-tours" }, { slug:"bale-trekking-adventure-8-days",  style:"ethiopia-adventure-tours" }, { slug:"endemic-mammals-circuit-15-days", style:"ethiopia-wildlife-tours" }],
+  "bale-monkey":          [{ slug:"bale-mountains-wildlife-5-days",   style:"ethiopia-wildlife-tours" }, { slug:"bale-trekking-adventure-8-days",  style:"ethiopia-adventure-tours" }],
+  "blue-winged-goose":    [{ slug:"rift-valley-lakes-birding-7-days", style:"ethiopia-birdwatching-tours" }, { slug:"ethiopia-birding-specialist-14-days", style:"ethiopia-birdwatching-tours" }],
+  "stresemanns-bushcrow": [{ slug:"ethiopia-birding-specialist-14-days", style:"ethiopia-birdwatching-tours" }, { slug:"rift-valley-lakes-birding-7-days", style:"ethiopia-birdwatching-tours" }],
+}
+
+const SPECIES_GUIDES: Record<string, string[]> = {
+  "ethiopian-wolf":       ["popular-wildlife-ethiopia", "when-to-visit-ethiopia", "what-to-pack-for-ethiopia"],
+  "gelada-monkey":        ["popular-wildlife-ethiopia", "when-to-visit-ethiopia", "what-to-pack-for-ethiopia"],
+  "walia-ibex":           ["popular-wildlife-ethiopia", "when-to-visit-ethiopia"],
+  "mountain-nyala":       ["popular-wildlife-ethiopia", "when-to-visit-ethiopia"],
+  "bale-monkey":          ["popular-wildlife-ethiopia", "when-to-visit-ethiopia"],
+  "blue-winged-goose":    ["ethiopia-birding-guide", "popular-wildlife-ethiopia", "when-to-visit-ethiopia"],
+  "stresemanns-bushcrow": ["ethiopia-birding-guide", "popular-wildlife-ethiopia"],
+}
+
+const SPECIES_MOMENTS: Record<string, string[]> = {
+  "ethiopian-wolf":       ["ethiopian-wolf-bale-mountains-sanetti-plateau"],
+  "gelada-monkey":        ["gelada-monkey-simien-mountains"],
+  "walia-ibex":           ["gelada-monkey-simien-mountains"],
+  "mountain-nyala":       ["ethiopian-wolf-bale-mountains-sanetti-plateau"],
+  "bale-monkey":          ["ethiopian-wolf-bale-mountains-sanetti-plateau"],
+  "blue-winged-goose":    ["why-ethiopia-not-safari-destination"],
+  "stresemanns-bushcrow": ["why-ethiopia-not-safari-destination"],
+}
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -41,6 +75,20 @@ export default async function SpeciesPage({ params }: Props) {
   if (!sp) notFound()
   const content = getSpeciesContent(slug)
   const related = SPECIES.filter(s => s.slug !== slug).slice(0, 4)
+
+  // Resolve interlinking
+  const linkedItins = (SPECIES_ITINS[slug] ?? [])
+    .map(ref => { const it = getItinerary(ref.slug); return it ? { ...it, style: ref.style } : null })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .slice(0, 3)
+  const linkedGuides = (SPECIES_GUIDES[slug] ?? [])
+    .map(s => FIELD_GUIDE_CONTENT.find(g => g.slug === s))
+    .filter((x): x is NonNullable<typeof x> => Boolean(x))
+    .slice(0, 3)
+  const linkedMoments = (SPECIES_MOMENTS[slug] ?? [])
+    .map(s => MOMENTS_ARTICLES.find(a => a.slug === s))
+    .filter((x): x is NonNullable<typeof x> => Boolean(x))
+    .slice(0, 2)
 
   const schemas = [
     breadcrumbSchema([
@@ -154,13 +202,28 @@ export default async function SpeciesPage({ params }: Props) {
                 </dl>
               </div>
               {content?.relatedDestinations && content.relatedDestinations.length > 0 && (
-                <div className="border border-sand rounded-card p-5">
+                <div className="border border-sand rounded-card p-5 bg-white">
                   <div className="label-eyebrow mb-4">Where to Go</div>
                   <div className="space-y-2">
                     {content.relatedDestinations.map(d => (
                       <Link key={d} href={"/ethiopias-popular-destinations/"+d} className="flex items-center justify-between text-sm group cursor-pointer">
                         <span className="text-warmgrey group-hover:text-gold transition-colors font-body capitalize">{d.replace(/-/g," ")}</span>
-                        <svg className="text-gold/60 group-hover:text-gold" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg className="text-gold/60 group-hover:text-gold flex-shrink-0" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Planning guides */}
+              {linkedGuides.length > 0 && (
+                <div className="border border-sand rounded-card p-5 bg-white">
+                  <div className="label-eyebrow mb-4">Planning Guides</div>
+                  <div className="space-y-2">
+                    {linkedGuides.map(g => (
+                      <Link key={g.slug} href={"/ethiopia-travel-guide/"+g.slug} className="flex items-center justify-between text-sm group py-1">
+                        <span className="text-warmgrey group-hover:text-gold transition-colors font-body leading-snug" style={{fontSize:"13px"}}>{g.title}</span>
+                        <svg className="text-gold/50 group-hover:text-gold flex-shrink-0 ml-2" width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </Link>
                     ))}
                   </div>
@@ -170,6 +233,77 @@ export default async function SpeciesPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* ── SEE IT IN THE WILD: ITINERARIES ── */}
+      {linkedItins.length > 0 && (
+        <section className="section-padding-sm bg-gold-faint border-y border-sand/60" aria-labelledby="see-wild-heading">
+          <div className="container-max">
+            <AnimateIn className="flex flex-col sm:flex-row sm:items-end justify-between mb-9 gap-4">
+              <div>
+                <span className="label-eyebrow">See It in the Wild</span>
+                <h2 id="see-wild-heading" className="heading-display text-volcanic mt-1" style={{fontSize:"clamp(1.5rem,2.75vw,2.1rem)"}}>
+                  Journeys That Target the {sp.commonName}
+                </h2>
+              </div>
+              <Link href="/tours-by-experience/ethiopia-wildlife-tours" className="btn-ghost flex-shrink-0">All Wildlife Tours</Link>
+            </AnimateIn>
+            <AnimateStagger className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
+              {linkedItins.map(it => (
+                <Link key={it.slug} href={"/tours-by-experience/"+it.style+"/"+it.slug}
+                  className="group block bg-white border border-sand rounded-card overflow-hidden card-hover">
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <PlaceholderImage filename={"tour-"+it.slug+"-hero.jpg"} width={600} height={375} category="tour" fill className="group-hover:scale-105 transition-transform duration-700" />
+                    <div className="image-overlay-light" />
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-warmgrey font-body" style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>{it.durationLabel}</span>
+                      <span className="text-sand">·</span>
+                      <span className="text-warmgrey font-body" style={{fontSize:"11px"}}>{it.difficulty}</span>
+                    </div>
+                    <h3 className="font-display text-volcanic font-normal leading-snug group-hover:text-gold transition-colors mb-2" style={{fontSize:"clamp(1rem,1.5vw,1.1875rem)"}}>{it.name}</h3>
+                    {it.priceFrom && <div className="text-gold font-body font-medium" style={{fontSize:"12.5px"}}>{it.priceFrom}</div>}
+                  </div>
+                </Link>
+              ))}
+            </AnimateStagger>
+          </div>
+        </section>
+      )}
+
+      {/* ── FIELD NOTES: SAWLA MOMENTS ── */}
+      {linkedMoments.length > 0 && (
+        <section className="section-padding-sm bg-ivory" aria-labelledby="field-notes-heading">
+          <div className="container-max">
+            <AnimateIn className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+              <div>
+                <span className="label-eyebrow">From the Field</span>
+                <h2 id="field-notes-heading" className="heading-display text-volcanic mt-1" style={{fontSize:"clamp(1.375rem,2.5vw,2rem)"}}>
+                  What It&apos;s Actually Like
+                </h2>
+              </div>
+              <Link href="/sawla-moments" className="btn-ghost flex-shrink-0">All Field Notes</Link>
+            </AnimateIn>
+            <AnimateStagger className="grid sm:grid-cols-2 gap-5" staggerDelay={0.08}>
+              {linkedMoments.map(a => (
+                <Link key={a.slug} href={"/sawla-moments/"+a.slug}
+                  className="group block bg-white border border-sand rounded-card overflow-hidden card-hover">
+                  <div className="grid sm:grid-cols-[140px_1fr]">
+                    <div className="relative aspect-[4/3] sm:aspect-auto overflow-hidden">
+                      <PlaceholderImage filename={"moments-"+a.slug+"-hero.jpg"} width={280} height={210} category="moments" fill className="group-hover:scale-105 transition-transform duration-700" />
+                    </div>
+                    <div className="p-5">
+                      <div className="text-gold/70 font-body mb-1.5" style={{fontSize:"10px",letterSpacing:"0.12em",textTransform:"uppercase"}}>{a.category}</div>
+                      <h3 className="font-display text-volcanic font-normal group-hover:text-gold transition-colors leading-snug" style={{fontSize:"clamp(1rem,1.5vw,1.125rem)"}}>{a.title}</h3>
+                      <div className="text-warmgrey font-body mt-3" style={{fontSize:"11.5px"}}>{a.readingTime} min read</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </AnimateStagger>
+          </div>
+        </section>
+      )}
 
       {/* ── RELATED SPECIES ── */}
       <section className="section-padding bg-volcanic" aria-labelledby="related-species-heading">

@@ -1,26 +1,29 @@
 import type { Metadata, Viewport } from "next"
-import { Cormorant_Garamond, DM_Sans } from "next/font/google"
 import "./globals.css"
-import Header       from "@/components/layout/Header"
-import Footer       from "@/components/layout/Footer"
+// Self-hosted fonts via @fontsource — no Google Fonts dependency, GDPR-clean
+import "@fontsource/cormorant-garamond/300.css"
+import "@fontsource/cormorant-garamond/400.css"
+import "@fontsource/cormorant-garamond/500.css"
+import "@fontsource/cormorant-garamond/600.css"
+import "@fontsource/cormorant-garamond/300-italic.css"
+import "@fontsource/cormorant-garamond/400-italic.css"
+import "@fontsource/cormorant-garamond/500-italic.css"
+import "@fontsource/cormorant-garamond/600-italic.css"
+import "@fontsource/dm-sans/300.css"
+import "@fontsource/dm-sans/400.css"
+import "@fontsource/dm-sans/500.css"
+import "@fontsource/dm-sans/600.css"
+import { GoogleAnalytics } from "@next/third-parties/google"
+import Header        from "@/components/layout/Header"
+import Footer        from "@/components/layout/Footer"
 import WhatsAppButton from "@/components/layout/WhatsAppButton"
-import ScrollToTop  from "@/components/ui/ScrollToTop"
-import SchemaScript from "@/components/ui/SchemaScript"
+import MobileCtaBar  from "@/components/layout/MobileCtaBar"
+import ScrollToTop   from "@/components/ui/ScrollToTop"
+import ReadingProgress from "@/components/ui/ReadingProgress"
+import SchemaScript  from "@/components/ui/SchemaScript"
 import { homepageSchema } from "@/lib/schema"
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300","400","500","600"],
-  style: ["normal","italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-})
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["300","400","500","600"],
-  variable: "--font-dm-sans",
-  display: "swap",
-})
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -51,19 +54,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cormorant.variable + " " + dmSans.variable}>
+    <html lang="en">
       <head>
         <SchemaScript schema={homepageSchema} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="antialiased">
+        <ReadingProgress />
         <Header />
         <main id="main-content">{children}</main>
         <Footer />
         <WhatsAppButton />
+        <MobileCtaBar />
         <ScrollToTop />
       </body>
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   )
 }

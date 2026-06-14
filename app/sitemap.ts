@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { DESTINATIONS, TOUR_STYLES, MOMENTS_ARTICLES } from '@/data/siteData'
+import { DESTINATIONS, TOUR_STYLES, MOMENTS_ARTICLES, FIELD_GUIDE_SLUGS } from '@/data/siteData'
 
 const BASE = 'https://www.sawlatours.com'
 
@@ -27,7 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/sawla-films`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/sawla-foundation`,              lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/trip-finder`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/meet-our-drivers`,              lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/privacy-policy`,                lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE}/terms`,                         lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
   ]
@@ -47,5 +46,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: now, changeFrequency: 'monthly', priority: 0.6,
   }))
 
-  return [...staticPages, ...destinationPages, ...tourStylePages, ...momentsPages]
+  const guidePages: MetadataRoute.Sitemap = FIELD_GUIDE_SLUGS.map(slug => ({
+    url: `${BASE}/ethiopia-travel-guide/${slug}`,
+    lastModified: now, changeFrequency: 'monthly', priority: 0.75,
+  }))
+
+  return [...staticPages, ...destinationPages, ...tourStylePages, ...guidePages, ...momentsPages]
 }

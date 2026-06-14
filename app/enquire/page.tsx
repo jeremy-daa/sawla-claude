@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PlaceholderImage from '@/components/ui/PlaceholderImage'
 import SchemaScript from '@/components/ui/SchemaScript'
+import EnquiryForm from '@/components/forms/EnquiryForm'
 import { TOUR_STYLES, SITE } from '@/data/siteData'
 
 export const metadata: Metadata = {
@@ -102,131 +103,7 @@ export default function EnquirePage() {
             <h2 className="heading-display text-display-sm text-charcoal mb-2">Start With What You Know</h2>
             <p className="text-warmgrey mb-8">You don&apos;t need a complete itinerary. Even a rough idea is enough to begin.</p>
 
-            {/* DEVELOPER: Wire form to CRM/email handler, add honeypot, configure auto-reply */}
-            <form
-              action="/api/enquire"
-              method="POST"
-              className="space-y-6"
-              aria-label="Ethiopia tour enquiry form"
-            >
-              {/* Hidden spam trap */}
-              <input type="text" name="_honey" className="hidden" aria-hidden="true" tabIndex={-1} />
-
-              {/* STEP 1 — REQUIRED */}
-              <fieldset className="space-y-5">
-                <legend className="text-[11px] uppercase tracking-wider text-gold font-500 mb-4">Step 1 — Your basics</legend>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-500 text-charcoal mb-1.5">Full name <span className="text-gold">*</span></label>
-                    <input id="name" name="name" type="text" required placeholder="Your name" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-500 text-charcoal mb-1.5">Email address <span className="text-gold">*</span></label>
-                    <input id="email" name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="whatsapp" className="block text-sm font-500 text-charcoal mb-1.5">WhatsApp / phone number <span className="text-gold">*</span></label>
-                  <input id="whatsapp" name="whatsapp" type="tel" required placeholder="+1 202 555 0100 (include country code)" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
-                  <p className="text-xs text-warmgrey mt-1">WhatsApp is often the easiest way for us to reach you quickly.</p>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label htmlFor="dates" className="block text-sm font-500 text-charcoal mb-1.5">When are you planning to travel? <span className="text-gold">*</span></label>
-                    <input id="dates" name="dates" type="text" required placeholder="e.g. October 2026, or 15–28 November" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
-                  </div>
-                  <div>
-                    <label htmlFor="duration" className="block text-sm font-500 text-charcoal mb-1.5">Trip duration <span className="text-gold">*</span></label>
-                    <select id="duration" name="duration" required className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
-                      <option value="">Select trip length</option>
-                      <option>1–3 days</option>
-                      <option>4–7 days</option>
-                      <option>8–12 days</option>
-                      <option>13–18 days</option>
-                      <option>19+ days</option>
-                      <option>Not sure yet</option>
-                    </select>
-                  </div>
-                </div>
-              </fieldset>
-
-              {/* STEP 2 — OPTIONAL */}
-              <fieldset className="space-y-5 pt-6 border-t border-sand">
-                <legend className="text-[11px] uppercase tracking-wider text-gold font-500 mb-4">Step 2 — Your preferences (optional but helpful)</legend>
-
-                <div>
-                  <label htmlFor="travelers" className="block text-sm font-500 text-charcoal mb-1.5">Number of travelers</label>
-                  <input id="travelers" name="travelers" type="text" placeholder="e.g. 2 adults, or 2 adults + 1 child (age 10)" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-500 text-charcoal mb-2">Main interests (select all that apply)</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['Historic & cultural', 'Lalibela, Gondar, Axum', 'Omo Valley', 'Simien Mountains trekking', 'Bale Mountains wildlife', 'Danakil expedition', 'Photography tour', 'Birding & wildlife', 'Festival tours', 'Coffee & food', 'Mobile tented camps', 'Not sure yet'].map(interest => (
-                      <label key={interest} className="flex items-center gap-2 text-sm text-charcoal cursor-pointer">
-                        <input type="checkbox" name="interests" value={interest} className="accent-gold w-4 h-4" />
-                        {interest}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label htmlFor="style" className="block text-sm font-500 text-charcoal mb-1.5">Travel style</label>
-                    <select id="style" name="style" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
-                      <option value="">Select a style</option>
-                      <option>Comfortable mid-range</option>
-                      <option>Boutique & character lodges</option>
-                      <option>Luxury where available</option>
-                      <option>Adventure & remote</option>
-                      <option>Cultural immersion</option>
-                      <option>Slow & relaxed pace</option>
-                      <option>Photography-focused</option>
-                      <option>Family-friendly</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="budget" className="block text-sm font-500 text-charcoal mb-1.5">Approximate budget per person</label>
-                    <select id="budget" name="budget" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
-                      <option>I prefer to discuss</option>
-                      <option>Up to $2,000 USD</option>
-                      <option>$2,000–$3,500 USD</option>
-                      <option>$3,500–$5,000 USD</option>
-                      <option>$5,000–$8,000 USD</option>
-                      <option>$8,000+ USD</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-500 text-charcoal mb-1.5">Anything else we should know?</label>
-                  <textarea id="message" name="message" rows={5} placeholder="Tell us about your Ethiopia trip idea — destinations, special interests, mobility needs, dietary requirements, or anything that matters for planning." className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal placeholder-warmgrey/50 focus:outline-none focus:border-gold text-sm resize-none" />
-                </div>
-
-                <div>
-                  <label htmlFor="source" className="block text-sm font-500 text-charcoal mb-1.5">How did you find us? (optional)</label>
-                  <select id="source" name="source" className="w-full px-4 py-3 border border-sand rounded-sm bg-ivory text-charcoal focus:outline-none focus:border-gold text-sm">
-                    <option value="">Select</option>
-                    <option>Google search</option>
-                    <option>AI search (ChatGPT, Gemini, Perplexity)</option>
-                    <option>Referral from friend or past guest</option>
-                    <option>Social media</option>
-                    <option>Travel article or blog</option>
-                    <option>Previous guest returning</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-              </fieldset>
-
-              <button type="submit" className="btn-primary w-full justify-center text-[13px] py-4">
-                Send My Enquiry →
-              </button>
-              <p className="text-xs text-warmgrey text-center">No pressure. No generic package. Just a careful first conversation with an Ethiopia-based travel team.</p>
-            </form>
+            <EnquiryForm />
           </div>
 
           {/* ── CONTACT SIDEBAR ── */}

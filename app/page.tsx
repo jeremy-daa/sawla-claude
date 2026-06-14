@@ -6,7 +6,8 @@ import { AnimateIn, AnimateStagger } from "@/components/ui/AnimateIn"
 import HeroSection from "@/components/home/HeroSection"
 import TripWizard from "@/components/home/TripWizard"
 import { homepageSchema } from "@/lib/schema"
-import { DESTINATIONS, TOUR_STYLES, TESTIMONIALS, MOMENTS_ARTICLES, SITE } from "@/data/siteData"
+import { TOUR_STYLES, TESTIMONIALS, MOMENTS_ARTICLES, SITE } from "@/data/siteData"
+import { PREMIUM_DESTINATIONS } from "@/data/destinationsPremium"
 
 export const metadata: Metadata = {
   title: "Private Ethiopia Tours by Local Experts | Sawla Tours",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.sawlatours.com" },
 }
 
-const featuredDests = DESTINATIONS.filter(d => d.featured)
+const featuredDests = PREMIUM_DESTINATIONS.filter(d => d.featured)
 const homeTestimonials = TESTIMONIALS.filter(t => ["andrew-bart-usa","keith-blodgett","maureen-mason-au"].includes(t.id))
 
 /* ── SVG Icons (no emoji) ──────────────────────── */

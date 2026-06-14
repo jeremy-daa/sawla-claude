@@ -134,7 +134,7 @@ export default function WhyTravelPage() {
             </p>
           </AnimateIn>
           <AnimateStagger className="grid md:grid-cols-2 lg:grid-cols-3 gap-5" staggerDelay={0.08}>
-            {TESTIMONIALS.map(tm=>(
+            {TESTIMONIALS.filter(t => t.useOn?.includes("testimonials")).slice(0, 6).map(tm=>(
               <blockquote key={tm.id} className="bg-white/5 border border-white/10 rounded-card p-7 flex flex-col hover:bg-white/8 hover:border-gold/25 transition-colors duration-300">
                 <div className="flex gap-1 mb-5">
                   {[1,2,3,4,5].map(i=>(<svg key={i} width="13" height="13" viewBox="0 0 14 14" fill="#c9941a" aria-hidden="true"><path d="M7 1l1.68 3.4 3.75.55-2.71 2.64.64 3.73L7 9.77 3.64 11.32l.64-3.73L1.57 4.95l3.75-.55L7 1z"/></svg>))}
@@ -150,6 +150,9 @@ export default function WhyTravelPage() {
               </blockquote>
             ))}
           </AnimateStagger>
+          <AnimateIn delay={0.2} className="text-center mt-12">
+            <Link href="/testimonials" className="btn-ghost-light">Read All Traveller Stories</Link>
+          </AnimateIn>
         </div>
       </section>
 
@@ -193,6 +196,36 @@ export default function WhyTravelPage() {
               </tbody>
             </table>
           </AnimateIn>
+        </div>
+      </section>
+
+      {/* ── PROOF PAGES STRIP ── */}
+      <section className="py-12 bg-gold-faint/50 border-t border-sand/60">
+        <div className="container-max">
+          <AnimateIn className="text-center mb-8">
+            <span className="label-eyebrow">See for Yourself</span>
+            <h2 className="font-display text-volcanic font-light mt-1" style={{fontSize:"clamp(1.25rem,2.25vw,1.75rem)"}}>
+              Everything Above Is on the Record
+            </h2>
+          </AnimateIn>
+          <AnimateStagger className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4" staggerDelay={0.06}>
+            {[
+              { label: "About Sawla Tours", desc: "Founder story, team, timeline", href: "/about-us" },
+              { label: "Meet Our Guides", desc: "Region-specific field specialists", href: "/meet-our-guides" },
+              { label: "Meet Our Specialists", desc: "Who plans your journey", href: "/meet-our-travel-specialists" },
+              { label: "Traveller Stories", desc: "16 verified client accounts", href: "/testimonials" },
+            ].map(p => (
+              <Link key={p.href} href={p.href}
+                className="group bg-white border border-sand rounded-card p-5 hover:border-gold/40 transition-all duration-300">
+                <h3 className="font-display text-volcanic font-normal group-hover:text-gold transition-colors leading-snug" style={{fontSize:"clamp(1rem,1.5vw,1.125rem)"}}>{p.label}</h3>
+                <p className="text-warmgrey font-body mt-1.5" style={{fontSize:"12.5px"}}>{p.desc}</p>
+                <div className="mt-3 inline-flex items-center gap-1 text-gold font-body font-medium" style={{fontSize:"11px",letterSpacing:"0.1em",textTransform:"uppercase"}}>
+                  View
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              </Link>
+            ))}
+          </AnimateStagger>
         </div>
       </section>
 
