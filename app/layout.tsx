@@ -14,14 +14,9 @@ import "@fontsource/dm-sans/400.css"
 import "@fontsource/dm-sans/500.css"
 import "@fontsource/dm-sans/600.css"
 import { GoogleAnalytics } from "@next/third-parties/google"
-import Header        from "@/components/layout/Header"
-import Footer        from "@/components/layout/Footer"
-import WhatsAppButton from "@/components/layout/WhatsAppButton"
-import MobileCtaBar  from "@/components/layout/MobileCtaBar"
-import ScrollToTop   from "@/components/ui/ScrollToTop"
-import ReadingProgress from "@/components/ui/ReadingProgress"
 import SchemaScript  from "@/components/ui/SchemaScript"
 import { homepageSchema } from "@/lib/schema"
+import SiteChrome from "@/components/layout/SiteChrome"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
@@ -59,13 +54,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SchemaScript schema={homepageSchema} />
       </head>
       <body className="antialiased">
-        <ReadingProgress />
-        <Header />
+        <SiteChrome position="before" />
         <main id="main-content">{children}</main>
-        <Footer />
-        <WhatsAppButton />
-        <MobileCtaBar />
-        <ScrollToTop />
+        <SiteChrome position="after" />
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>

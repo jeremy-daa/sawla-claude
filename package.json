@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "stage:assets": "node scripts/stage-untagged-assets.js"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",
@@ -15,6 +16,8 @@
     "@next/third-parties": "^16.2.9",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
+    "lucide-react": "^1.18.0",
+    "mongodb": "^7.3.0",
     "next": "^16.2.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -28,7 +31,9 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.9",
     "postcss": "^8.5.1",
+    "sharp": "^0.35.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
-  }
+  },
+  "packageManager": "npm@11.17.0+sha512.3eeaf18997b11070d313849268b23766b9db0068997dec9471073170fe43fa17f2b4d0337bf0f52330ee2274e7f5754b21b01052742e48f5c9c74d8b1e32ef43"
 }

@@ -21,3 +21,4 @@ Thumbs.db
 *.swo
 *.tsbuildinfo
 next-env.d.ts
+images/
